@@ -12,6 +12,20 @@ SRC_URI += " \
          file://usbserial.cfg \
 "
 
+SRC_URI:append:imx95-19x19-navq = " \
+         file://rpmsgfs.cfg \
+         file://fs_sec.cfg \
+"
+
+
+SRCBRANCH = "imx95-navq-lf-6.6.23"
+SRCREV = "90445e44b2312bf728888865e2ef7326d6ea870e"
+KERNEL_SRC = "git://git@github.com/NXPHoverGames/linux-imx-private.git;protocol=ssh;branch=${SRCBRANCH}"
+
+KERNEL_DEVICETREE:append:use-nxp-bsp = " \
+    freescale/imx95-19x19-navq.dtb \
+    "
+
 do_configure:append () {
     ${S}/scripts/kconfig/merge_config.sh -m -O ${B} ${B}/.config $(ls ${WORKDIR}/*.cfg)
 

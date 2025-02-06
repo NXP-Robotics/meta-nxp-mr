@@ -193,12 +193,15 @@ IMAGE_INSTALL += "\
 	gstreamer1.0-plugins-base-videotestsrc \
 	gstreamer1.0-plugins-base-ximagesink \
 	gstreamer1.0-plugins-base-xvimagesink \
+"
+
+IMAGE_INSTALL:append:imx8mpnavq = " \
 	libopenvx-imx \
 	libopenvx-imx-dev \
 	libnn-imx \
 	tensorflow-lite \
 	tensorflow-lite-vx-delegate \
-"
+	"
 
 # gstreamer1.0-plugins-good-ximagesrc libxtst6
 # gstreamer1.0-plugins-good-gtk libxrender1
@@ -221,14 +224,20 @@ APTGET_EXTRA_PACKAGES += "\
 ##############################################################################
 
 # GPU driver
-G2D_SAMPLES			= ""
-G2D_SAMPLES:imxgpu2d		= "imx-g2d-samples"
-G2D_SAMPLES:imxdpu		= "imx-g2d-samples"
+G2D_SAMPLES                 = ""
+G2D_SAMPLES:imxgpu2d        = "imx-g2d-samples"
+G2D_SAMPLES:imxdpu          = "imx-g2d-samples"
 
-IMAGE_INSTALL:remove:imx95-19x19-lpddr5-evk = " \
-	libgles3-imx-dev \
-	libopencl-imx \
-	libvulkan-imx \
+
+IMAGE_INSTALL:append:imx95-19x19-navq = " \
+	mavlink-router \
+	remoteidtransmitter \
+	"
+
+IMAGE_INSTALL:remove:imx95-19x19-navq = " \
+    libgles3-imx-dev \
+    libopencl-imx \
+    libvulkan-imx \
 	libopencl-imx \
 	libgal-imx \
 	packagegroup-fsl-gstreamer1.0 \
@@ -391,8 +400,7 @@ IMAGE_INSTALL:remove:imx95-19x19-lpddr5-evk = " \
 	gstreamer1.0-plugins-base-videotestsrc \
 	gstreamer1.0-plugins-base-ximagesink \
 	gstreamer1.0-plugins-base-xvimagesink \
-	libopenvx-imx \
-	libopenvx-imx-dev \
+	libopenvx-imx libopenvx-imx-dev \
 	libnn-imx \
 	tensorflow-lite \
 	tensorflow-lite-vx-delegate \
