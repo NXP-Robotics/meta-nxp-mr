@@ -232,13 +232,10 @@ G2D_SAMPLES:imxdpu          = "imx-g2d-samples"
 IMAGE_INSTALL:append:imx95-19x19-navq = " \
 	mavlink-router \
 	remoteidtransmitter \
+	tensorflow-lite-neutron-delegate \
 	"
 
 IMAGE_INSTALL:remove:imx95-19x19-navq = " \
-    libgles3-imx-dev \
-    libopencl-imx \
-    libvulkan-imx \
-	libopencl-imx \
 	libgal-imx \
 	packagegroup-fsl-gstreamer1.0 \
 	gstreamer1.0 \
@@ -400,11 +397,6 @@ IMAGE_INSTALL:remove:imx95-19x19-navq = " \
 	gstreamer1.0-plugins-base-videotestsrc \
 	gstreamer1.0-plugins-base-ximagesink \
 	gstreamer1.0-plugins-base-xvimagesink \
-	libopenvx-imx libopenvx-imx-dev \
-	libnn-imx \
-	tensorflow-lite \
-	tensorflow-lite-vx-delegate \
-	${ML_NNSTREAMER_PKGS} \
 "
 
 PACKAGE_EXCLUDE = "libgles3-imx-dev libegl-imx-dev libc6-dev"

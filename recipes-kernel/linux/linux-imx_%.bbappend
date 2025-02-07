@@ -1,6 +1,16 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += " \
+         file://cpufreq.cfg \
+         file://usbserial.cfg \
+         file://fs_sec.cfg \
+"
+
+SRC_URI:append:imx95-19x19-navq = " \
+         file://rpmsgfs.cfg \
+"
+
+SRC_URI:append:imx8mpnavq = " \
          file://0001-net-phy-nxp-c45-tja11xx-add-rev-rmii-support.patch \
          file://0002-net-fec-add-rev-rmii-support.patch \
          file://0003-arm64-dts-imx8mp-navq-Fix-TJA1103-phy.patch \
@@ -8,15 +18,7 @@ SRC_URI += " \
          file://0005-imx8mpnavq-enable-sr1xx-spi-driver-in-dts.patch \
          file://0006-ov5645tn-driver-for-navq.patch \
          file://uwb.cfg \
-         file://cpufreq.cfg \
-         file://usbserial.cfg \
 "
-
-SRC_URI:append:imx95-19x19-navq = " \
-         file://rpmsgfs.cfg \
-         file://fs_sec.cfg \
-"
-
 
 SRCBRANCH = "imx95-navq-lf-6.6.23"
 SRCREV = "0e7ce2f115221751ab8bc4bc0cfcb5d9dd561aea"
