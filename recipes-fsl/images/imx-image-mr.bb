@@ -230,8 +230,6 @@ G2D_SAMPLES:imxdpu          = "imx-g2d-samples"
 
 
 IMAGE_INSTALL:append:imx95-19x19-navq = " \
-	mavlink-router \
-	remoteidtransmitter \
 	tensorflow-lite-neutron-delegate \
 	"
 
