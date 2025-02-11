@@ -150,6 +150,7 @@ python3-dev python3-nose python3-numpy python3-pkgutil  \
 python3-plistlib python3-pycairo python3-pycairo-dev  \
 python3-pyelftools python3-pygobject python3-pygobject-dev  \
 python3-typing python3-unixadmin python3-xml python3-xmlrpc  \
+python3-pillow \
 rgb shadow-dev shared-mime-info-dev slang sysfsutils sysklogd  \
 sysstat update-rc.d usbutils util-linux-dev util-macros-dev  \
 valgrind valgrind-dev wireless-tools  \

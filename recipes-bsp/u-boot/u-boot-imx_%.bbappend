@@ -1,8 +1,8 @@
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRCBRANCH = "imx95-navq-lf_v2024.04"
-SRCREV = "fa409f8c7fe45e276dec1a9dc7a01eddd44daa86"
+SRCBRANCH = "imx95-navq-lf-6.6.52"
+SRCREV = "2792ad610980324a11b08e5ee145ff75d8da68fd"
 UBOOT_SRC = "git://git@github.com/NXPHoverGames/uboot-imx-private.git;protocol=ssh;branch=${SRCBRANCH}"
 
 

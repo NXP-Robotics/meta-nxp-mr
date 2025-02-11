@@ -1,6 +1,6 @@
-From 2ab6d4cb494b06ad22d813216d5b8c07e94ca270 Mon Sep 17 00:00:00 2001
-From: Andre Heinemans <andre.heinemans@nxp.com>
-Date: Mon, 11 Nov 2024 15:28:23 +0100
+From 27f23cba116951597cf59b2165a11de20040e17c Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Tue, 11 Feb 2025 14:07:18 +0100
 Subject: [PATCH] set m7 start address at flash
 
 ---
@@ -8,10 +8,10 @@ Subject: [PATCH] set m7 start address at flash
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/iMX95/soc.mak b/iMX95/soc.mak
-index c7ddee3..86141b4 100644
+index 92e6110..04c7283 100644
 --- a/iMX95/soc.mak
 +++ b/iMX95/soc.mak
-@@ -52,7 +52,7 @@ TEE_LOAD_ADDR ?= 0x8C000000
+@@ -53,7 +53,7 @@ TEE_LOAD_ADDR ?= 0x8C000000
  MCU_XIP_ADDR ?= 0x28032000 # Point entry of m33 in flexspi0 nor flash
  M33_IMAGE_XIP_OFFSET ?= 0x31000 # 1st container offset is 0x1000 when boot device is flexspi0 nor
  				# flash, actually the m33_image.bin is in 0x31000 + 0x1000 = 0x32000.
@@ -19,7 +19,7 @@ index c7ddee3..86141b4 100644
 +M7_TCM_ADDR ?= 0x02000000
  M7_TCM_ADDR_ALIAS ?= 0x303C0000
  M7_DDR_ADDR ?= 0x80000000
- 
+ M7_XIP_ADDR ?= 0x28132000 # Point entry of m7 in flexspi0 nor flash
 -- 
 2.34.1
 
