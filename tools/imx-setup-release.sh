@@ -161,7 +161,7 @@ hook_in_layer meta-imx/meta-imx-v2x
 hook_in_layer meta-nxp-demo-experience
 hook_in_layer meta-nxp-connectivity/meta-nxp-matter-baseline
 hook_in_layer meta-nxp-connectivity/meta-nxp-openthread
-hook_in_layer meta-nxp-desktop
+hook_in_layer meta-nxp-mr
 
 echo "" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-arm/meta-arm\"" >> $BUILD_DIR/conf/bblayers.conf
