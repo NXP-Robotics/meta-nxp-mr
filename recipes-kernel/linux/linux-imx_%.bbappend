@@ -21,7 +21,7 @@ SRC_URI:append:imx8mpnavq = " \
 "
 
 SRCBRANCH = "imx95-navq-lf-6.6.52"
-SRCREV = "734cde183ae698debee604e2d752b753d86fdf04"
+SRCREV = "3d020c586e4dec716feba19e3815861de479a61e"
 LINUX_IMX_SRC = "git://git@github.com/NXPHoverGames/linux-imx-private.git;protocol=ssh;branch=${SRCBRANCH}"
 
 KERNEL_DEVICETREE:append:use-nxp-bsp = " \
