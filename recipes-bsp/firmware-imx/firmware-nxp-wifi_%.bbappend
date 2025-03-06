@@ -10,10 +10,10 @@ SRCREV = "2978f3c88d6bcc5695a7b45f1936f18d31eebfa8"
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 #do_install:prepend defined in meta-nxp-connectivity/meta-nxp-matter-advanced/recipes-bsp/firmware-imx/firmware-nxp-wifi_%.bbappend
 #cannot be removed, so add them here again to do the operation then delete them in do_install later;
-SRC_URI += "file://IW612-Q3-24-R4/sduart_nw61x_v1.bin.se"
-SRC_URI += "file://IW612-Q3-24-R4/sd_w61x_v1.bin.se"
-SRC_URI += "file://IW612-Q3-24-R4/uartspi_n61x_v1.bin.se"
-SRC_URI += "file://IW612-Q3-24-R4/uartuart_n61x_v1.bin.se"
+#SRC_URI += "file://IW612-Q3-24-R4/sduart_nw61x_v1.bin.se"
+#SRC_URI += "file://IW612-Q3-24-R4/sd_w61x_v1.bin.se"
+#SRC_URI += "file://IW612-Q3-24-R4/uartspi_n61x_v1.bin.se"
+#SRC_URI += "file://IW612-Q3-24-R4/uartuart_n61x_v1.bin.se"
 
 SRC_URI += "file://IW612-Q1-25-RC3-p23.7/sduart_nw61x_v1.bin.se"
 SRC_URI += "file://IW612-Q1-25-RC3-p23.7/sd_w61x_v1.bin.se"
