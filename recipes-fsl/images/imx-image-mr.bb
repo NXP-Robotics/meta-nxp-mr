@@ -203,6 +203,10 @@ IMAGE_INSTALL:append:imx8mpnavq = " \
 	tensorflow-lite-vx-delegate \
 	"
 
+IMAGE_INSTALL:append:imx95-19x19-navq = " \
+	rpmsgexport \
+	"
+
 # gstreamer1.0-plugins-good-ximagesrc libxtst6
 # gstreamer1.0-plugins-good-gtk libxrender1
 # gstreamer1.0-plugins-good-cairo
