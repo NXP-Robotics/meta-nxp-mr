@@ -2,9 +2,9 @@ SUMMARY = "A prebuilt Desktop Base image as baseline for custom work"
 require ubuntu-license.inc
 SECTION = "devel"
 
-# Desktop 24.04.1 baseline
-SRC_URI[md5sum] = "46c4c6c387ceefbd82762bf667060be8"
-SRC_URI[sha256sum] = "7700539236d24c31c3eea1d5345eba5ee0353a1bac7d91ea5720b399b27f3cb4"
+# Desktop 24.04.2 baseline
+SRC_URI[md5sum] = "d42cefd38731f0b3164a6734f30de695"
+SRC_URI[sha256sum] = "d3144c017e40b328c0e86f022d8d00a786db036784103c4413aa533dd97cbd3d"
 
 require ubuntu-base.inc
 

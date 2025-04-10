@@ -2,8 +2,13 @@ DESCRIPTION = "Configure network interfaces on NavQPlus"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-SRC_URI = " \
+SRC_URI:imx8mpnavq = " \
 	file://10-end0.network \
+	file://10-can.network \
+"
+
+SRC_URI:imx95-19x19-navq = " \
+	file://10-enP2p0s8f0.network \
 	file://10-can.network \
 "
 
@@ -12,8 +17,7 @@ S = "${WORKDIR}"
 do_install() {
 
 	install -d ${D}/etc/systemd/network
-	install -m 0644 ${S}/10-end0.network ${D}/etc/systemd/network
-	install -m 0644 ${S}/10-can.network ${D}/etc/systemd/network
+	install -m 0644 ${S}/10-*.network ${D}/etc/systemd/network
 
 }
 
