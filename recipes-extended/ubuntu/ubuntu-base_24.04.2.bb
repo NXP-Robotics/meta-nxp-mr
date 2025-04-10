@@ -58,7 +58,7 @@ alsa-topology-conf attr attr-dev avahi-daemon avahi-dev  \
 base-files-dev base-passwd base-passwd-dev bash-completion bash-completion-dev  \
 bash-dev bluez5 bluez5-dev \
 consolekit consolekit-dev cracklib cracklib-dev  \
-cryptodev-linux cryptodev-linux-dev curl curl-devflac-dev  \
+cryptodev-linux cryptodev-linux-dev libcurl4 libcurl4-dev curl curl-devflac-dev  \
 encodings-dev fio flex-dev flex-libfl font-util font-util-dev  \
 glib-2.0 glib-networking gobject-introspection  \
 gobject-introspection-dev gsettings-desktop-schemas-dev gtk+3-dev gtk+-dev \
@@ -150,6 +150,7 @@ python3-dev python3-nose python3-numpy python3-pkgutil  \
 python3-plistlib python3-pycairo python3-pycairo-dev  \
 python3-pyelftools python3-pygobject python3-pygobject-dev  \
 python3-typing python3-unixadmin python3-xml python3-xmlrpc  \
+python3-pillow \
 rgb shadow-dev shared-mime-info-dev slang sysfsutils sysklogd  \
 sysstat update-rc.d usbutils util-linux-dev util-macros-dev  \
 valgrind valgrind-dev wireless-tools  \
