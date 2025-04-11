@@ -2,7 +2,7 @@ DESCRIPTION = "Configure network interfaces on NavQPlus"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-SRC_URI:imx8mpnavq = " \
+SRC_URI:imx8mp-navq = " \
 	file://10-end0.network \
 	file://10-can.network \
 "

@@ -8,7 +8,7 @@ fi
 BASE_WORK_DIR="$HOME/nxp-mr-image"
 BUILD_TYPE=jazzy
 BRANCH=lf-6.6.23-2.0.0-scarthgap
-MACHINE="imx8mpnavq"
+MACHINE="imx8mp-navq"
 MANIFEST="imx-6.6.23-2.0.0.xml"
 DISTRO="imx-desktop-xwayland"
 SETUP="imx-setup-release.sh"
@@ -62,9 +62,9 @@ cat >> bblayers.conf <<EOF
 BBLAYERS += "\${BSPDIR}/sources/${NXP_META_IMAGE}"
 EOF
 fi
-if ! grep -q "MACHINE ??= 'imx8mpnavqdesktop'" local.conf
+if ! grep -q "MACHINE ??= 'imx8mp-navqdesktop'" local.conf
 then
-sed -i "s/^MACHINE ??=.*/MACHINE ??= 'imx8mpnavqdesktop'/" local.conf
+sed -i "s/^MACHINE ??=.*/MACHINE ??= 'imx8mp-navqdesktop'/" local.conf
 fi
 if ! grep -q "DISTRO ?= 'imx-desktop-xwayland'" local.conf
 then

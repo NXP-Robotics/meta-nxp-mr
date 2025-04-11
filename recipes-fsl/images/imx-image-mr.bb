@@ -195,7 +195,7 @@ IMAGE_INSTALL += "\
 	gstreamer1.0-plugins-base-xvimagesink \
 "
 
-IMAGE_INSTALL:append:imx8mpnavq = " \
+IMAGE_INSTALL:append:imx8mp-navq = " \
 	libopenvx-imx \
 	libopenvx-imx-dev \
 	libnn-imx \
