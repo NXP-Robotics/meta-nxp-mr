@@ -29,6 +29,7 @@ YOCTO-DEPENDS-LIST = " \
     python3-multiprocessing python3-netclient python3-numbers \
     python3-netserver python3-pydoc python3-pickle python3-pprint \
     python3-shell python3-stringold python3-threading python3-unittest\
+    python3-image \
     bash util-linux-blkid libreadline8 \
 "
 # layerscape lib conflicts
