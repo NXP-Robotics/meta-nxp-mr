@@ -13,10 +13,9 @@ S = "${WORKDIR}/git"
 
 TARGET_CC_ARCH += "${LDFLAGS}"
 
-EXTRA_OEMAKE = "prefix=${D}${bindir}"
-
 do_install() {
 	oe_runmake
-	oe_runmake install
+	install -d ${D}${bindir}
+	install -m 0755 rpmsgexport ${D}${bindir}
 }
 
