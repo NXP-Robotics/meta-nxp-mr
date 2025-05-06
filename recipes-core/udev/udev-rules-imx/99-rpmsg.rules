@@ -1,4 +1,4 @@
-SUBSYSTEM=="rpmsg", ACTION=="add", KERNEL=="virtio0.*", ATTR{name}=="rpmsg-synapse", RUN+="/bin/sh -c '/bin/echo /usr/bin/rpmsgexport /dev/rpmsg_ctrl0 $attr{name} $attr{src} $attr{dst} > /tmp/start-rpmsg-synapse'"
+SUBSYSTEM=="rpmsg", ACTION=="add", KERNEL=="virtio0.*", ATTR{name}=="rpmsg-synapse", RUN+="/bin/sh -c '/bin/echo /usr/bin/rpmsgexport /dev/rpmsg_ctrl0 $attr{name} $attr{src} $attr{dst} > /tmp/start-rpmsg-synapse && /bin/sh /tmp/start-rpmsg-synapse && /bin/rm /tmp/start-rpmsg-synapse'"
 SUBSYSTEM=="rpmsg", ACTION=="add", ATTR{name}=="rpmsg_ctrl", RUN+="/bin/sh /tmp/start-rpmsg-synapse"
 
 SUBSYSTEM=="rpmsg", KERNEL=="rpmsg0", ATTR{name}=="rpmsg-synapse", GROUP="dialout", SYMLINK+="synapse"
