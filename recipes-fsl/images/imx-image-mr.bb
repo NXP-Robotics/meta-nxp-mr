@@ -204,6 +204,7 @@ IMAGE_INSTALL:append:imx8mpnavq = " \
 
 IMAGE_INSTALL:append:imx95-19x19-navq = " \
 	rpmsgexport \
+	rpmsgfs-remotedirs \
 	"
 
 # gstreamer1.0-plugins-good-ximagesrc libxtst6
