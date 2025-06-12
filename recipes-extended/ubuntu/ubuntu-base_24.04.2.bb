@@ -189,4 +189,5 @@ APTGET_EXTRA_PACKAGES += " \
     libegl-dev \
     libgl-dev \
     libgles-dev \
+    v4l-utils \
 "
