@@ -11,7 +11,7 @@ export PACKAGE_INSTALL = "${IMAGE_INSTALL}"
 APTGET_CHROOT_DIR = "${IMAGE_ROOTFS}"
 APTGET_SKIP_UPGRADE = "1"
 
-ROOTFS_POSTPROCESS_COMMAND:append = "do_fix_ldconfig; do_aptget_update; do_update_host; do_config_netplan; do_multi_user; "
+ROOTFS_POSTPROCESS_COMMAND:append = "do_fix_ldconfig; do_aptget_update; do_update_host; do_config_netplan; do_multi_user; do_cleanup_rootfs;"
 IMAGE_PREPROCESS_COMMAND:append = " do_config_systemd_resolved; do_disable_gslice; do_cleanup_rootfs; "
 
 
