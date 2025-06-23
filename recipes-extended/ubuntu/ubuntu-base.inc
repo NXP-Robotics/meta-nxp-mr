@@ -119,7 +119,7 @@ fakeroot do_aptget_user_update:append() {
 	set -x
 
 	# Without an /etc/fstab, the rootfs remains read only
-	install -m 0644 ${WORKDIR}/fstab ${D}${sysconfdir}/fstab
+	install -m 0644 ${UNPACKDIR}/fstab ${D}${sysconfdir}/fstab
 
 	# After we are done installing our extra packages, we
 	# optionally kill the log directory content, so that we
@@ -185,3 +185,5 @@ python prep_xattr_postinst() {
 PACKAGEFUNCS =+ "prep_xattr_postinst"
 
 COMPATIBLE_MACHINE = "ubuntu"
+
+ERROR_QA:remove = "mime mime-xdg"

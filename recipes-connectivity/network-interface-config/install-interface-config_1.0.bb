@@ -12,7 +12,8 @@ SRC_URI:imx95-19x19-navq = " \
 	file://10-can.network \
 "
 
-S = "${WORKDIR}"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 do_install() {
 

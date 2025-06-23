@@ -4,8 +4,8 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 do_install:append () {
     # LDP release, we only need install NXP specific blacklist as blacklist-nxp.conf
     rm -rf ${D}${sysconfdir}/*
-    if [ -e "${WORKDIR}/blacklist.conf" ]; then
+    if [ -e "${UNPACKDIR}/blacklist.conf" ]; then
         install -d ${D}${sysconfdir}/modprobe.d
-        install -m 0644 ${WORKDIR}/blacklist.conf ${D}${sysconfdir}/modprobe.d/blacklist-nxp.conf
+        install -m 0644 ${UNPACKDIR}/blacklist.conf ${D}${sysconfdir}/modprobe.d/blacklist-nxp.conf
     fi
 }

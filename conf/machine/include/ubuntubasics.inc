@@ -37,7 +37,7 @@ GCCVERSION = '${@ \
 # Desktop 18.04: max glibc 2.27...
 # Desktop 20.x: max glibc 2.31...
 GLIBCVERSION = '${@ \
-    oe.utils.conditional("UBUNTU_TARGET_BASEVERSION", "24.04.2", "2.39", \
+    oe.utils.conditional("UBUNTU_TARGET_BASEVERSION", "24.04.2", "2.39+git", \
     "unsupportedubuntuversion" \
     , d)}'
 PREFERRED_VERSION_cross-localedef-native = "${GLIBCVERSION}"

@@ -11,3 +11,5 @@ do_install:append () {
 }
 
 FILES:${PN} += "/usr/local/lib/python3.12/*"
+
+ERROR_QA:remove = "libdir patch-status"

@@ -5,7 +5,7 @@
 
 IMAGE_LINGUAS = ""
 IMAGE_INSTALL = ""
-inherit core-image image nativeaptinstall features_check
+inherit core-image image nativeaptinstall
 export PACKAGE_INSTALL = "${IMAGE_INSTALL}"
 
 APTGET_CHROOT_DIR = "${IMAGE_ROOTFS}"
@@ -26,7 +26,6 @@ IMAGE_INSTALL += "\
 #####
 IMAGE_FEATURES += " \
     tools-sdk \
-    debug-tweaks \
     tools-profile \
     package-management \
     splash \

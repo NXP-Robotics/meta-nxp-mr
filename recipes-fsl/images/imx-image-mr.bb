@@ -24,11 +24,11 @@ IMAGE_INSTALL += "\
 "
 
 # Include kernel source
-IMAGE_INSTALL += "\
-	kernel-dev \
-	kernel-devsrc \
-	kernel-modules \
-"
+#IMAGE_INSTALL += "\
+#	kernel-dev \
+#	kernel-devsrc \
+#	kernel-modules \
+#"
 
 IMAGE_INSTALL += "\
 	firmwared \

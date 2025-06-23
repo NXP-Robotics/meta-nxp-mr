@@ -1,5 +1,7 @@
 require pseudo.inc
 
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+
 SRC_URI = "git://git.yoctoproject.org/pseudo;branch=master \
            file://0001-configure-Prune-PIE-flags.patch \
            file://fallback-passwd \
@@ -8,6 +10,7 @@ SRC_URI = "git://git.yoctoproject.org/pseudo;branch=master \
 
 SRCREV = "ec6151a2b057109b3f798f151a36690af582e166"
 S = "${WORKDIR}/git"
+UNPACKDIR = "${S}"
 PV = "1.9.0+git${SRCPV}"
 
 # largefile and 64bit time_t support adds these macros via compiler flags globally
@@ -19,3 +22,21 @@ TARGET_CC_ARCH:remove = "-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_TIME_BITS
 
 # error: use of undeclared identifier '_STAT_VER'
 COMPATIBLE_HOST:libc-musl = 'null'
+
+ERROR_QA:remove = "patch-status"
+
+python do_unpack:append() {
+    import os
+    import shutil
+
+    workdir = d.getVar('WORKDIR')
+    src_dir = os.path.join(workdir, 'git', 'git')
+    dst_dir = os.path.join(workdir, 'git')
+
+    if os.path.exists(src_dir):
+        for item in os.listdir(src_dir):
+            src_path = os.path.join(src_dir, item)
+            dst_path = os.path.join(dst_dir, item)
+            shutil.move(src_path, dst_path)
+        os.rmdir(src_dir)
+}

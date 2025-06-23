@@ -7,7 +7,8 @@ SRC_URI = " file://gpuconfig \
             file://gpuconfig.service \
             file://profile \
 "
-S = "${WORKDIR}"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 RDEPENDS:${PN} = "systemd"
 

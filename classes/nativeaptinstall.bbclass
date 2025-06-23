@@ -105,7 +105,7 @@ APTGET_REMAINING_FAKETOOLS_PACKAGES ?= "kmod"
 APTGET_DL_CACHE ?= "${DL_DIR}/apt-get/${TRANSLATED_TARGET_ARCH}"
 APTGET_CACHE_DIR ?= "${APTGET_CHROOT_DIR}/var/cache/apt/archives"
 
-DEPENDS += "qemu-native virtual/${TARGET_PREFIX}binutils rsync-native coreutils-native dpkg-native"
+DEPENDS += "qemu-native rsync-native coreutils-native dpkg-native"
 
 # We need the proper parameter version for the tool
 APTGET_TARGET_ARCH="${@d.getVar('TRANSLATED_TARGET_ARCH', True).replace("aarch64", "arm64")}"
