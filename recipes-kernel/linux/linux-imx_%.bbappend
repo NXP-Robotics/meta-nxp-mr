@@ -29,7 +29,7 @@ KERNEL_DEVICETREE:append:use-nxp-bsp = " \
     "
 
 do_configure:append () {
-    ${S}/scripts/kconfig/merge_config.sh -m -O ${B} ${B}/.config $(ls ${WORKDIR}/*.cfg)
+    ${S}/scripts/kconfig/merge_config.sh -m -O ${B} ${B}/.config $(ls ${UNPACKDIR}/*.cfg)
 
     if [ ! -z "${LOCALVERSION}" ]; then
         echo "CONFIG_LOCALVERSION=\"\"" >> ${B}/.config
