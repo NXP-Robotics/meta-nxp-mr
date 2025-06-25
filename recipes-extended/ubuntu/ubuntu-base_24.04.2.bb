@@ -61,7 +61,7 @@ bash-dev bluez5 bluez5-dev \
 consolekit consolekit-dev cracklib cracklib-dev  \
 cryptodev-linux cryptodev-linux-dev libcurl4 libcurl4-dev curl curl-devflac-dev  \
 encodings-dev fio flex-dev flex-libfl font-util font-util-dev  \
-glib-2.0 glib-networking gobject-introspection  \
+glib-2.0 glib-2.0-dev glib-networking gobject-introspection  \
 gobject-introspection-dev gsettings-desktop-schemas-dev gtk+3-dev gtk+-dev \
 hicolor-icon-theme i2c-tools ibxshmfence-dev icu icu-dev  \
 ifenslave init-system-helpers-service iproute2-ip iso-codes-dev  \
@@ -70,7 +70,7 @@ libatomic-dev libatomic-ops libatomic-ops-dev libatopology2  \
 libatspi0 libattr1 libavahi-client3 libavahi-common3  \
 libavahi-core7 libavahi-glib1 libavahi-gobject0  \
 libblkid1 libc6-dbg libcairo-dbg  \
-libcairo-dev  \
+libcairo libcairo-dev libcairo2 libcairo2-dev \
 libcanberra-dev libcanberra-gtk2  \
 libcap libcap2 libcap-dbg libcap-dev libcap-ng0 libcap-ng-dev  \
 libcogl-gles2-20 \
@@ -190,4 +190,5 @@ APTGET_EXTRA_PACKAGES += " \
     libgl-dev \
     libgles-dev \
     v4l-utils \
+    libcairo2 \
 "

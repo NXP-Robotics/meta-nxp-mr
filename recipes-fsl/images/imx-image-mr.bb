@@ -234,16 +234,23 @@ G2D_SAMPLES:imxdpu          = "imx-g2d-samples"
 
 
 IMAGE_INSTALL:append:imx95-19x19-navq = " \
+	litert \
+	litert-dev \
+	onnxruntime-dev \
 	onnxruntime-tests \
 	pytorch \
 	tensorflow-lite \
+	tensorflow-lite-dev \
 	neutron \
+	litert-neutron-delegate \
 	tensorflow-lite-neutron-delegate \
+	imx-nnstreamer-examples \
 	nnstreamer \
 	nnstreamer-protobuf \
 	nnstreamer-python3 \
 	nnstreamer-query \
 	nnstreamer-tensorflow-lite \
+	gstreamer1.0-dev \
 	gst-shark \
 	libcamera \
 	libcamera-gst \
