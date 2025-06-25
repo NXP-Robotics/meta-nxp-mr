@@ -228,9 +228,10 @@ APTGET_EXTRA_PACKAGES += "\
 ##############################################################################
 
 # GPU driver
-G2D_SAMPLES                 = ""
-G2D_SAMPLES:imxgpu2d        = "imx-g2d-samples"
-G2D_SAMPLES:imxdpu          = "imx-g2d-samples"
+G2D_SAMPLES              = ""
+G2D_SAMPLES:imxgpu2d     = "imx-g2d-samples"
+G2D_SAMPLES:mx93-nxp-bsp = "imx-g2d-samples"
+G2D_SAMPLES:mx943-nxp-bsp = "imx-g2d-samples"
 
 
 IMAGE_INSTALL:append:imx95-19x19-navq = " \
@@ -255,6 +256,60 @@ IMAGE_INSTALL:append:imx95-19x19-navq = " \
 	libcamera \
 	libcamera-gst \
 	libcamera-pycamera \
+	mali-imx \
+	mali-imx-dev \
+	mali-imx-opencl-icd-dev \
+	patrace \
+	${G2D_SAMPLES} \
 	"
 
 PACKAGE_EXCLUDE = "libgles3-imx-dev libegl-imx-dev libc6-dev"
+
+ROOTFS_POSTPROCESS_COMMAND += "write_build_info_to_rootfs;"
+
+write_build_info_to_rootfs() {
+    echo "Generating build info..."
+
+    mkdir -p ${IMAGE_ROOTFS}/etc
+
+    # Timestamp
+    date -u +"%Y-%m-%dT%H:%M:%SZ" > ${IMAGE_ROOTFS}/etc/build-info.txt
+
+    # Build Configuration
+    echo "" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "Build Configuration:" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "BB_VERSION           = \"${BB_VERSION}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "BUILD_SYS            = \"${BUILD_SYS}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "NATIVELSBSTRING      = \"${NATIVELSBSTRING}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "TARGET_SYS           = \"${TARGET_SYS}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "MACHINE              = \"${MACHINE}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "DISTRO               = \"${DISTRO}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "DISTRO_VERSION       = \"${DISTRO_VERSION}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "TUNE_FEATURES        = \"${TUNE_FEATURES}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+
+    # Host Linux Distribution
+    echo "" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "Build Host OS:" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "${NAME} ${VERSION}" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    else
+        echo "Unknown" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    fi
+
+    # Layers with Git info
+    echo "" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    echo "Layers:" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+    for layer in ${BBLAYERS}; do
+        if [ -d "$layer/.git" ]; then
+            name=$(basename $layer)
+            branch=$(git -C $layer rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+            commit=$(git -C $layer rev-parse HEAD 2>/dev/null || echo "unknown")
+            dirty=$(git -C $layer diff --quiet || echo "-dirty")
+            echo "$name = \"$branch:$commit${dirty}\"" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+        else
+            echo "$(basename $layer)" >> ${IMAGE_ROOTFS}/etc/build-info.txt
+        fi
+    done
+
+}
