@@ -8,6 +8,8 @@ SRC_URI += " \
 
 SRC_URI:append:imx95-19x19-navq = " \
          file://rpmsg.cfg \
+         file://mali.cfg \
+         file://input.cfg \
 "
 
 SRC_URI:append:imx8mpnavq = " \
@@ -21,7 +23,7 @@ SRC_URI:append:imx8mpnavq = " \
 "
 
 SRCBRANCH = "imx95-navq-lf-6.12.y"
-SRCREV = "e15445bdc18f740c09d3801e8a4049d38410bf72"
+SRCREV = "1702cc57b267d534839a47d5e3c466189f9439d4"
 LINUX_IMX_SRC = "git://git@github.com/NXPHoverGames/linux-imx-private.git;protocol=ssh;branch=${SRCBRANCH}"
 
 KERNEL_DEVICETREE:append:use-nxp-bsp = " \
