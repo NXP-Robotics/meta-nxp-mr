@@ -15,6 +15,10 @@ RPROVIDES:${PN}:ubuntu += " \
     /bin/sed \
 "
 
+RDEPENDS:${PN}:ubuntu += " \
+    apt-setup-firstboot \
+"
+
 # Extra packages that Desktop will replace and thus enables the use of 
 # Yocto packages such as gstreamer to be used in Desktop without package conflitcs
 # python conflitcs lib
