@@ -12,6 +12,7 @@ RPROVIDES:${PN}:ubuntu += " \
     /bin/sh \
     /bin/bash \
     /bin/dash \
+    /bin/sed \
 "
 
 # Extra packages that Desktop will replace and thus enables the use of 
@@ -81,7 +82,7 @@ libdrm-exynos libdrm-freedreno libdrm-intel libdrm-nouveau  \
 libdrm-omap libdrm-radeon libdw1 libelf1  \
 libexpat1 libexpat-dbg libexpat-dev libfdisk1  \
 libffi7 libffi-dbg libffi-dev  \
-libfontconfig-dbg libfontconfig-dev  \
+libfontconfig1 libfontconfig-dbg libfontconfig-dev  \
 libfreetype-dbg libfreetype-dev  \
 libfribidi-dbg libfribidi-dev  \
 libgcc libgcc1 libgcc-s-dbg  \
@@ -136,7 +137,7 @@ libxft-dbg libxft-dev  \
 libxi6 libxi-dev  \
 libxkbfile1 libxkbfile-dev libxml2 libxml2-dbg libxml2-dev  \
 libxrandr-dev libxrender-dbg libxrender-dev  \
-libxshmfence1 libxshmfence-dev libxtst-dev  \
+libxshmfence1 libxshmfence-dev libxtst6 libxtst-dev  \
 libxv-dbg libxv-dev libxxf86vm1 libxxf86vm-dev  \
 libz1 libz-dbg libz-dev libzstd1 linux-libc-headers-dev  \
 lrzsz memtester merge-files mesa-dev minicom  \
@@ -191,4 +192,11 @@ APTGET_EXTRA_PACKAGES += " \
     libgles-dev \
     v4l-utils \
     libcairo2 \
+    libxtst6 \
+    libwebp7 \
+    libwebpmux3 \
+    libsndfile1 \
+    libsbc1 \
+    librsvg2-2 \
+    libxft2 \
 "
