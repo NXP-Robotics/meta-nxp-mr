@@ -36,6 +36,7 @@
 #                      'type' can be 'deb' or 'deb-src' (default 'deb')
 #                      'name' if specified will be created under '/etc/apt/sources.list.d/';
 #                      otherwise the PPA string will be appended to '/etc/apt/sources.list'
+#   APTGET_ROS_APT_SOURCE - Manually download Deb file and isntall with dpkg
 #   APTGET_ADD_USERS - users to be added to the file system (space separated), following
 #                      format 'name:pass:shell'.
 #                      'name' is the user name.
@@ -712,6 +713,13 @@ END_USER
 	if [ -n "${APTGET_INIT_PACKAGES}" ]; then
                 aptget_run_aptget install ${APTGET_INIT_PACKAGES}
 	fi
+
+	if [ -n "${APTGET_ROS_APT_SOURCE}" ]; then
+                LATEST_TAG_VERSION="${@oe.utils.getstatusoutput("curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep '\"tag_name\"' | cut -d '\"' -f4")[1]}"
+		x="${APTGET_ROS_APT_SOURCE}"
+                chroot "${APTGET_CHROOT_DIR}" /usr/bin/curl -v -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/"$LATEST_TAG_VERSION"/ros2-apt-source_"$LATEST_TAG_VERSION"."$x"_all.deb"
+                chroot "${APTGET_CHROOT_DIR}" /usr/bin/dpkg -i /tmp/ros2-apt-source.deb
+        fi
 
 	if [ -n "${APTGET_EXTRA_PPA}" ]; then
 		DISTRO_NAME=`grep "DISTRIB_CODENAME=" "${APTGET_CHROOT_DIR}/etc/lsb-release" | sed "s/DISTRIB_CODENAME=//g"`
