@@ -150,7 +150,7 @@ mmc-utils mozjs mozjs-dev  \
 ncurses-dev nettle-dbg nettle-dev \
 orc orc-dev  \
 pciutils perl-dev pkgconfig polkit polkit-dev  \
-psmisc ptpd pulseaudio pulseaudio-dev  \
+psmisc ptpd pulseaudio pulseaudio-dev libpulse libpulse0 \
 python2 python3-compile python3-dbus python3-dbus-dev  \
 python3-dev python3-nose python3-numpy python3-pkgutil  \
 python3-plistlib python3-pycairo python3-pycairo-dev  \
@@ -203,4 +203,5 @@ APTGET_EXTRA_PACKAGES += " \
     libsbc1 \
     librsvg2-2 \
     libxft2 \
+    libpulse0 \
 "
