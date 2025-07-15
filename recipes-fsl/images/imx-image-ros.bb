@@ -12,9 +12,7 @@ IMAGE_INSTALL += "\
 "
 
 ROS_VERSION = "jazzy"
-APTGET_ROS_APT_SOURCE = "jammy"
-
-ROS_PPA = "http://packages.ros.org/ros2/ubuntu;https://raw.githubusercontent.com/ros/rosdistro/master/ros.key;ros-archive-keyring.gpg;deb;ros-latest.list"
+APTGET_ROS_APT_SOURCE = "noble"
 
 ROS_PACKAGES = "  \
     autoconf \
@@ -206,8 +204,6 @@ ADD_ROS_PACKAGES ?= "${ROS_PACKAGES}"
 APTGET_EXTRA_PACKAGES_LAST += " \
     ${ADD_ROS_PACKAGES} \
 "
-
-APTGET_EXTRA_PPA += "${ROS_PPA}"
 
 ROOTFS_POSTPROCESS_COMMAND += "do_install_home_files;"
 
