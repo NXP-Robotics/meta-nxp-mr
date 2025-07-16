@@ -719,6 +719,7 @@ END_USER
 		x="${APTGET_ROS_APT_SOURCE}"
                 chroot "${APTGET_CHROOT_DIR}" /usr/bin/curl -v -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/"$LATEST_TAG_VERSION"/ros2-apt-source_"$LATEST_TAG_VERSION"."$x"_all.deb"
                 chroot "${APTGET_CHROOT_DIR}" /usr/bin/dpkg -i /tmp/ros2-apt-source.deb
+                chroot "${APTGET_CHROOT_DIR}" ${APTGET_EXECUTABLE} ${APTGET_DEFAULT_OPTS} update
         fi
 
 	if [ -n "${APTGET_EXTRA_PPA}" ]; then
