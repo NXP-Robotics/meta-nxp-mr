@@ -1,12 +1,14 @@
 [Unit]
 Description=Run apt-setup task only on first boot
 ConditionPathExistsGlob=/etc/apt-setup/*
+Before=multi-user.target
 After=network.target
 
 [Service]
 Type=oneshot
 ExecStart=/bin/bash -c 'dpkg -i /etc/apt-setup/*.deb'
 ExecStartPost=/bin/bash -c 'rm /etc/apt-setup/*'
+ExecStartPost=/bin/sleep 4
 
 [Install]
 WantedBy=multi-user.target
