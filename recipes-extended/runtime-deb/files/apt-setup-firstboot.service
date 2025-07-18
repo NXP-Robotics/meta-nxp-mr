@@ -2,7 +2,9 @@
 Description=Run apt-setup task only on first boot
 ConditionPathExistsGlob=/etc/apt-setup/*
 Before=multi-user.target
-After=network.target
+Before=getty.target
+Before=serial-getty@ttyLP0.service
+After=local-fs.target
 
 [Service]
 Type=oneshot
