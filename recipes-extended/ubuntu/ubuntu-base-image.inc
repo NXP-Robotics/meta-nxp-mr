@@ -144,7 +144,7 @@ libxcb-util-dev libxcb-xf86dri0 libxcb-xfixes0 libxcb-xinerama0  \
 libxcb-xinput0 libxcb-xkb1 libxcb-xtest0 libxcb-xv0 libxcb-xvmc0  \
 libxcomposite1 libxcomposite-dev libxcursor1 libxcursor-dev  \
 libxdmcp6 libxdmcp-dbg libxdmcp-dev  \
-libxext6 libxext-dbg libxext-dev libxfixes3 libxfixes-dbg libxfixes-dev  \
+libxext6 libxext-dbg libxext-dev  \
 libxfont2-2 libxfont2-dev libxft2 libxft-dbg libxft-dev  \
 libxi6 libxi-dev libxkbcommon libxkbcommon0 libxkbcommon-dev  \
 libxkbfile1 libxkbfile-dev libxml2 libxml2-dbg libxml2-dev  \
