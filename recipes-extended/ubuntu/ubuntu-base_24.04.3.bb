@@ -204,4 +204,6 @@ APTGET_EXTRA_PACKAGES += " \
     librsvg2-2 \
     libxft2 \
     libpulse0 \
+    python3-spidev \
+    python3-libgpiod \
 "
