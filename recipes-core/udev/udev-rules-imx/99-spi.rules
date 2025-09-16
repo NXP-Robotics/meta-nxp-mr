@@ -1,0 +1,5 @@
+#SUBSYSTEM=="spi", ACTION=="add" KERNEL=="spi0.0", GROUP="dialout", RUN+="/bin/sh -c '/usr/bin/touch /home/user/blaat && /bin/echo spidev > /sys/bus/spi/devices/spi0.0/driver_override && /bin/echo spi0.0 > /sys/bus/spi/drivers/spidev/bind'"
+SUBSYSTEM=="spi", ACTION=="add", RUN+="/bin/sh -c '/bin/echo spidev > /sys/bus/spi/devices/%k/driver_override && /bin/echo %k > /sys/bus/spi/drivers/spidev/bind'"
+
+SUBSYSTEM=="spidev", KERNELS=="42550000.spi", GROUP="dialout", SYMLINK+="spi_j25"
+SUBSYSTEM=="spidev", KERNELS=="42700000.spi", GROUP="dialout", SYMLINK+="spi_j20"
