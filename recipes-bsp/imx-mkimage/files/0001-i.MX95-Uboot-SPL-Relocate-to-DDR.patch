@@ -1,0 +1,25 @@
+From a29149961528311ac1a4fed5d5a5ca57bd21e0be Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Fri, 3 Oct 2025 13:30:58 +0200
+Subject: [PATCH] i.MX95 Uboot SPL Relocate to DDR
+
+---
+ iMX95/soc.mak | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/iMX95/soc.mak b/iMX95/soc.mak
+index a3eaa2e..970ca32 100644
+--- a/iMX95/soc.mak
++++ b/iMX95/soc.mak
+@@ -39,7 +39,7 @@ endif
+ 
+ AHAB_IMG = mx95$(ELE_REVISION)-ahab-container.img
+ SPL_LOAD_ADDR ?= 0x4aa00000		# For singleboot, non-SCMI SPL, use NPU SRAM
+-SPL_LOAD_ADDR_M33_VIEW ?= 0x20480000 	# For lpboot, SCMI SPL
++SPL_LOAD_ADDR_M33_VIEW ?= 0x88240000 	# For lpboot, SCMI SPL
+ ATF_LOAD_ADDR ?= 0x8A200000
+ UBOOT_LOAD_ADDR ?= 0x90200000
+ MCU_TCM_ADDR ?= 0x1FFC0000		# 256KB TCM
+-- 
+2.34.1
+
