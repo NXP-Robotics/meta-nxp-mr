@@ -6,7 +6,7 @@ SRC_URI += " \
          file://fs_sec.cfg \
 "
 
-SRC_URI:append:imx95-19x19-navq = " \
+SRC_URI:append:imx95-navq = " \
          file://rpmsg.cfg \
          file://mali.cfg \
          file://input.cfg \
@@ -24,12 +24,8 @@ SRC_URI:append:imx8mpnavq = " \
 "
 
 SRCBRANCH = "imx95-navq-lf-6.12.y"
-SRCREV = "0b1b4b6c907a52c65fb84f94a96dab0fee13480f"
+SRCREV = "183bdef14f40baebe550f1f68816f765f176e996"
 LINUX_IMX_SRC = "git://git@github.com/NXPHoverGames/linux-imx-private.git;protocol=ssh;branch=${SRCBRANCH}"
-
-KERNEL_DEVICETREE:append:use-nxp-bsp = " \
-    freescale/imx95-19x19-navq.dtb \
-    "
 
 do_configure:append () {
     ${S}/scripts/kconfig/merge_config.sh -m -O ${B} ${B}/.config $(ls ${UNPACKDIR}/*.cfg)

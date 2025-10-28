@@ -37,7 +37,7 @@ IMAGE_INSTALL:append:imx8mpnavq = " \
 	tensorflow-lite-vx-delegate \
 	"
 
-IMAGE_INSTALL:append:imx95-19x19-navq = " \
+IMAGE_INSTALL:append:imx95-navq = " \
 	rpmsgexport \
 	rpmsgfs-remotedirs \
 	"
@@ -63,7 +63,7 @@ G2D_SAMPLES:imxgpu2d     = "imx-g2d-samples"
 G2D_SAMPLES:mx93-nxp-bsp = "imx-g2d-samples"
 G2D_SAMPLES:mx943-nxp-bsp = "imx-g2d-samples"
 
-IMAGE_INSTALL:append:imx95-19x19-navq = " \
+IMAGE_INSTALL:append:imx95-navq = " \
 	litert \
 	litert-dev \
 	onnxruntime-dev \

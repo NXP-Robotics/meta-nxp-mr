@@ -7,7 +7,7 @@ SRC_URI:imx8mpnavq = " \
 	file://10-can.network \
 "
 
-SRC_URI:imx95-19x19-navq = " \
+SRC_URI:imx95-navq = " \
 	file://10-enP2p0s8f0.network \
 	file://10-can.network \
 "
