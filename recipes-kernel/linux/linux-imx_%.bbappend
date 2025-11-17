@@ -24,7 +24,7 @@ SRC_URI:append:imx8mpnavq = " \
 "
 
 SRCBRANCH = "imx95-navq-lf-6.12.y"
-SRCREV = "183bdef14f40baebe550f1f68816f765f176e996"
+SRCREV = "542e3aa4d0eb462125119db617428a34838729a2"
 LINUX_IMX_SRC = "git://git@github.com/NXPHoverGames/linux-imx-private.git;protocol=ssh;branch=${SRCBRANCH}"
 
 do_configure:append () {
