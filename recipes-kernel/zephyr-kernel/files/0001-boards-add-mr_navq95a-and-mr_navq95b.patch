@@ -1,0 +1,1380 @@
+From 70c29c76599379e635207f3f89cb571a0325750e Mon Sep 17 00:00:00 2001
+From: Andre Heinemans <andre.heinemans@nxp.com>
+Date: Fri, 28 Nov 2025 10:04:16 +0100
+Subject: [PATCH] boards: add mr_navq95a and mr_navq95b
+
+Upstream-Status: Inappropriate [Cross-compilation specific]
+
+Signed-off-by: Andre Heinemans <andre.heinemans@nxp.com>
+---
+ boards/nxp/mr_navq95a/Kconfig.mr_navq95a      |   6 +
+ boards/nxp/mr_navq95a/board.cmake             |   9 +
+ boards/nxp/mr_navq95a/board.yml               |  11 +
+ boards/nxp/mr_navq95a/doc/index.rst           |   3 +
+ boards/nxp/mr_navq95a/mr_navq95a-pinctrl.dtsi | 189 ++++++++++++++++++
+ .../nxp/mr_navq95a/mr_navq95a_mimx9596_m7.dts | 180 +++++++++++++++++
+ .../mr_navq95a/mr_navq95a_mimx9596_m7.yaml    |  21 ++
+ .../mr_navq95a/mr_navq95a_mimx9596_m7_ddr.dts |  23 +++
+ .../mr_navq95a_mimx9596_m7_ddr.yaml           |  17 ++
+ .../mr_navq95a_mimx9596_m7_ddr_defconfig      |  24 +++
+ .../mr_navq95a_mimx9596_m7_defconfig          |  27 +++
+ .../mr_navq95a_mimx9596_m7_flash.dts          |  18 ++
+ .../mr_navq95a_mimx9596_m7_flash.yaml         |  18 ++
+ .../mr_navq95a_mimx9596_m7_flash_defconfig    |  22 ++
+ boards/nxp/mr_navq95b/Kconfig.mr_navq95b      |   6 +
+ boards/nxp/mr_navq95b/board.cmake             |   9 +
+ boards/nxp/mr_navq95b/board.yml               |  11 +
+ boards/nxp/mr_navq95b/doc/index.rst           |   3 +
+ boards/nxp/mr_navq95b/mr_navq95b-pinctrl.dtsi | 189 ++++++++++++++++++
+ .../nxp/mr_navq95b/mr_navq95b_mimx9596_m7.dts | 180 +++++++++++++++++
+ .../mr_navq95b/mr_navq95b_mimx9596_m7.yaml    |  21 ++
+ .../mr_navq95b/mr_navq95b_mimx9596_m7_ddr.dts |  23 +++
+ .../mr_navq95b_mimx9596_m7_ddr.yaml           |  17 ++
+ .../mr_navq95b_mimx9596_m7_ddr_defconfig      |  24 +++
+ .../mr_navq95b_mimx9596_m7_defconfig          |  27 +++
+ .../mr_navq95b_mimx9596_m7_flash.dts          |  18 ++
+ .../mr_navq95b_mimx9596_m7_flash.yaml         |  18 ++
+ .../mr_navq95b_mimx9596_m7_flash_defconfig    |  22 ++
+ 28 files changed, 1136 insertions(+)
+ create mode 100644 boards/nxp/mr_navq95a/Kconfig.mr_navq95a
+ create mode 100644 boards/nxp/mr_navq95a/board.cmake
+ create mode 100644 boards/nxp/mr_navq95a/board.yml
+ create mode 100644 boards/nxp/mr_navq95a/doc/index.rst
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a-pinctrl.dtsi
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7.dts
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7.yaml
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr.dts
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr.yaml
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr_defconfig
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_defconfig
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash.dts
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash.yaml
+ create mode 100644 boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash_defconfig
+ create mode 100644 boards/nxp/mr_navq95b/Kconfig.mr_navq95b
+ create mode 100644 boards/nxp/mr_navq95b/board.cmake
+ create mode 100644 boards/nxp/mr_navq95b/board.yml
+ create mode 100644 boards/nxp/mr_navq95b/doc/index.rst
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b-pinctrl.dtsi
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7.dts
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7.yaml
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr.dts
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr.yaml
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr_defconfig
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_defconfig
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash.dts
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash.yaml
+ create mode 100644 boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash_defconfig
+
+diff --git a/boards/nxp/mr_navq95a/Kconfig.mr_navq95a b/boards/nxp/mr_navq95a/Kconfig.mr_navq95a
+new file mode 100644
+index 00000000000..8e3b138aeba
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/Kconfig.mr_navq95a
+@@ -0,0 +1,6 @@
++# Copyright 2024 NXP
++# SPDX-License-Identifier: Apache-2.0
++
++config BOARD_MR_NAVQ95A
++	select SOC_MIMX9596_M7 if BOARD_MR_NAVQ95A_MIMX9596_M7 || BOARD_MR_NAVQ95A_MIMX9596_M7_DDR || BOARD_MR_NAVQ95A_MIMX9596_M7_FLASH
++	select SOC_PART_NUMBER_MIMX9596AVZXN
+diff --git a/boards/nxp/mr_navq95a/board.cmake b/boards/nxp/mr_navq95a/board.cmake
+new file mode 100644
+index 00000000000..4c63ebd7930
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/board.cmake
+@@ -0,0 +1,9 @@
++# SPDX-License-Identifier: Apache-2.0
++
++if (CONFIG_SOC_MIMX9596_M7)
++  board_runner_args(jlink "--device=cortex-m7")
++  board_runner_args(pyocd "--target=mimx95_cm7")
++endif()
++
++include(${ZEPHYR_BASE}/boards/common/jlink.board.cmake)
++include(${ZEPHYR_BASE}/boards/common/pyocd.board.cmake)
+\ No newline at end of file
+diff --git a/boards/nxp/mr_navq95a/board.yml b/boards/nxp/mr_navq95a/board.yml
+new file mode 100644
+index 00000000000..07521bf1413
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/board.yml
+@@ -0,0 +1,11 @@
++board:
++  name: mr_navq95a
++  full_name: MR NavQ95a
++  vendor: nxp
++  socs:
++  - name: mimx9596
++    variants:
++    - name: ddr
++      cpucluster: m7
++    - name: flash
++      cpucluster: m7
+diff --git a/boards/nxp/mr_navq95a/doc/index.rst b/boards/nxp/mr_navq95a/doc/index.rst
+new file mode 100644
+index 00000000000..6a4199b1fab
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/doc/index.rst
+@@ -0,0 +1,3 @@
++.. zephyr:board:: mr_navq95a
++
++TODO
+\ No newline at end of file
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a-pinctrl.dtsi b/boards/nxp/mr_navq95a/mr_navq95a-pinctrl.dtsi
+new file mode 100644
+index 00000000000..9b80f262d69
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a-pinctrl.dtsi
+@@ -0,0 +1,189 @@
++/*
++ * Copyright 2024 NXP
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <nxp/nxp_imx/mimx9596avzxn-pinctrl.dtsi>
++
++&pinctrl {
++	flexspi_default: flexspi_default {
++		group0 {
++			pinmux = <&iomuxc_xspi1_data0_flexspi_a_data_bit_flexspi1_a_data_bit0>,
++				<&iomuxc_xspi1_data1_flexspi_a_data_bit_flexspi1_a_data_bit1>,
++				<&iomuxc_xspi1_data2_flexspi_a_data_bit_flexspi1_a_data_bit2>,
++				<&iomuxc_xspi1_data3_flexspi_a_data_bit_flexspi1_a_data_bit3>,
++				<&iomuxc_xspi1_data4_flexspi_a_data_bit_flexspi1_a_data_bit4>,
++				<&iomuxc_xspi1_data5_flexspi_a_data_bit_flexspi1_a_data_bit5>,
++				<&iomuxc_xspi1_data6_flexspi_a_data_bit_flexspi1_a_data_bit6>,
++				<&iomuxc_xspi1_data7_flexspi_a_data_bit_flexspi1_a_data_bit7>;
++			slew-rate = "slow";
++			drive-strength = "x1";
++		};
++		group1 {
++			pinmux = <&iomuxc_xspi1_sclk_flexspi_a_sclk_flexspi1_a_sclk>,
++				<&iomuxc_xspi1_dqs_flexspi_a_dqs_flexspi1_a_dqs>;
++			slew-rate = "slow";
++			drive-strength = "x6";
++		};
++		group2 {
++			pinmux = <&iomuxc_xspi1_ss0_b_flexspi_a_ss_b_flexspi1_a_ss0_b>,
++				<&iomuxc_xspi1_ss1_b_flexspi_a_ss_b_flexspi1_a_ss1_b>;
++			bias-pull-up;
++			slew-rate = "fast";
++			drive-strength = "x6";
++		};
++	};
++
++	lpspi1_default: lpspi1_default {
++		group0 {
++			pinmux = <&iomuxc_sai1_txfs_lpspi_pcs_lpspi1_pcs0>,
++				<&iomuxc_sai1_txd0_lpspi_sck_lpspi1_sck>,
++				<&iomuxc_sai1_txc_lpspi_sin_lpspi1_sin>,
++				<&iomuxc_sai1_rxd0_lpspi_sout_lpspi1_sout>;
++			/*<&iomuxc_sai1_txfs_gpio_io_bit_gpio1_io_bit11>, GPIO CS*/
++			bias-pull-down;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	lpspi4_default: lpspi4_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io16_lpspi_pcs_lpspi4_pcs2>,
++			    <&iomuxc_gpio_io17_lpspi_pcs_lpspi4_pcs1>,
++				<&iomuxc_gpio_io37_lpspi_sck_lpspi4_sck>,
++				<&iomuxc_gpio_io19_lpspi_sin_lpspi4_sin>,
++				<&iomuxc_gpio_io36_lpspi_sout_lpspi4_sout>;
++			/* GPIO CS */
++			/* <&iomuxc_gpio_io16_gpio_io_bit_gpio2_io_bit16>,
++				<&iomuxc_gpio_io17_gpio_io_bit_gpio2_io_bit17>,*/
++			bias-pull-down;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	lpi2c6_default: lpi2c6_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io03_lpi2c_scl_lpi2c6_scl>,
++				<&iomuxc_gpio_io02_lpi2c_sda_lpi2c6_sda>;
++			drive-open-drain;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++			input-enable;
++		};
++	};
++
++	lpi2c8_default: lpi2c8_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io11_lpi2c_scl_lpi2c8_scl>,
++				<&iomuxc_gpio_io10_lpi2c_sda_lpi2c8_sda>;
++			drive-open-drain;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++			input-enable;
++		};
++	};
++
++	lpuart1_default: lpuart1_default {
++		group0 {
++			pinmux = <&iomuxc_uart1_rxd_lpuart_rx_lpuart1_rx>,
++				<&iomuxc_uart1_txd_lpuart_tx_lpuart1_tx>;
++			bias-pull-up;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	lpuart3_default: lpuart3_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io15_lpuart_rx_lpuart3_rx>,
++				<&iomuxc_gpio_io14_lpuart_tx_lpuart3_tx>;
++			bias-pull-up;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	lpuart7_default: lpuart7_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io09_lpuart_rx_lpuart7_rx>,
++				<&iomuxc_gpio_io08_lpuart_tx_lpuart7_tx>;
++			bias-pull-up;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	sai3_default: sai3_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io16_sai_tx_bclk_sai3_tx_bclk>,
++				 <&iomuxc_gpio_io17_sai_mclk_sai3_mclk>,
++				 <&iomuxc_gpio_io20_sai_rx_data_bit_sai3_rx_data_bit0>,
++				 <&iomuxc_gpio_io21_sai_tx_data_bit_sai3_tx_data_bit0>,
++				 <&iomuxc_gpio_io26_sai_tx_sync_sai3_tx_sync>;
++			bias-pull-up;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	tpm2_default: tpm2_default {
++		group0 {
++			pinmux = <&iomuxc_i2c2_scl_tpm_ch_tpm2_ch2>,
++				<&iomuxc_i2c2_sda_tpm_ch_tpm2_ch3>;
++			drive-open-drain;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++			input-enable;
++		};
++	};
++
++	i3c2_default: i3c2_default {
++		group0 {
++			pinmux = <&iomuxc_enet1_mdc_i3c_scl_i3c2_scl>,
++				<&iomuxc_enet1_mdio_i3c_sda_i3c2_sda>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++			input-enable;
++			bias-pull-up;
++		};
++	};
++
++	flexcan5_default: flexcan5_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io22_can_tx_can5_tx>,
++				<&iomuxc_gpio_io23_can_rx_can5_rx>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	/* pwm pins */
++	tpm3_pwm1: tpm3_pwm1 {
++		group0 {
++			pinmux = <&iomuxc_gpio_io20_tpm_ch_tpm3_ch1>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	tpm4_pwm2_pwm3: tpm4_pwm2_pwm3 {
++		group0 {
++			pinmux = <&iomuxc_gpio_io05_tpm_ch_tpm4_ch0>,
++				<&iomuxc_gpio_io21_tpm_ch_tpm4_ch1>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	tpm5_pwm4_pwm5_pwm6: tpm5_pwm4_pwm5_pwm6 {
++		group0 {
++			pinmux = <&iomuxc_gpio_io06_tpm_ch_tpm5_ch0>,
++				<&iomuxc_gpio_io18_tpm_ch_tpm5_ch2>,
++				<&iomuxc_gpio_io26_tpm_ch_tpm5_ch3>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++};
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7.dts b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7.dts
+new file mode 100644
+index 00000000000..1874067dcf9
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7.dts
+@@ -0,0 +1,180 @@
++/*
++ * Copyright 2024 NXP
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++/dts-v1/;
++
++#include <nxp/nxp_imx95_m7.dtsi>
++#include <zephyr/dt-bindings/pwm/pwm.h>
++#include "mr_navq95a-pinctrl.dtsi"
++#include <zephyr/dt-bindings/sensor/icm42688.h>
++
++/ {
++	model = "NXP MR NavQ95a";
++	compatible = "nxp,mr_navq95a";
++
++	chosen {
++		/* TCM */
++		zephyr,flash = &itcm;
++		zephyr,sram = &dtcm;
++
++		zephyr,flash-controller = &mx25um51345g;
++		zephyr,console = &lpuart3;
++		zephyr,shell-uart = &lpuart3;
++
++		zephyr,code-partition = &itcm;
++	};
++};
++
++&flexspi {
++	status = "okay";
++	ahb-prefetch;
++	ahb-read-addr-opt;
++	ahb-bufferable;
++	ahb-cacheable;
++	rx-clock-source = <1>;
++	pinctrl-0 = <&flexspi_default>;
++	pinctrl-names = "default";
++	mx25um51345g: mx25um51345g@0 {
++		compatible = "nxp,imx-flexspi-mx25um51345g";
++		/* MX25UM51345G is 64MB, 512MBit flash part */
++		size = <DT_SIZE_M(64*8)>;
++		reg = <0>;
++		spi-max-frequency = <200000000>;
++		status = "okay";
++		jedec-id = [c2 81 3a];
++		erase-block-size = <4096>;
++		write-block-size = <2>;
++		cs-interval = <2>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			/*
++			 * Partition sizes must be aligned
++			 * to the flash memory sector size of 4KB.
++			 * 
++			 * boot_partition is left out since that will
++			 * run from ITCM
++			 */
++			slot0_partition: partition@0 {
++				label = "image-0";
++				reg = <0x00000000 DT_SIZE_M(7)>;
++			};
++			slot1_partition: partition@700000 {
++				label = "image-1";
++				reg = <0x00700000 DT_SIZE_M(7)>;
++			};
++			storage_partition: partition@E00000 {
++				label = "storage";
++				reg = <0x00E00000 DT_SIZE_M(2)>;
++			};
++		};
++	};
++};
++
++&lpspi1 {
++	pinctrl-0 = <&lpspi1_default>;
++	pinctrl-names = "default";
++	status = "okay";
++	/* cs-gpios =<&gpio1 11 GPIO_ACTIVE_LOW>; */
++
++	icm42688_0: icm42688p0@0 {
++		compatible = "invensense,icm42688"; /* icm42686 */
++		reg = <0>;
++		/* int-gpios = <&gpio3 19 GPIO_ACTIVE_HIGH>; */
++		spi-max-frequency = <24000000>;
++		accel-pwr-mode = <ICM42688_DT_ACCEL_LN>;
++		accel-odr = <ICM42688_DT_ACCEL_ODR_1000>;
++		accel-fs = <ICM42688_DT_ACCEL_FS_16>;
++		gyro-pwr-mode = <ICM42688_DT_GYRO_LN>;
++		gyro-odr = <ICM42688_DT_GYRO_ODR_1000>;
++		gyro-fs = <ICM42688_DT_GYRO_FS_2000>;
++	};
++};
++
++&lpspi4 {
++	pinctrl-0 = <&lpspi4_default>;
++	pinctrl-names = "default";
++	status = "okay";
++	transfer-delay = <50>;
++	sck-pcs-delay = <25>;
++	pcs-sck-delay = <25>;
++	/* cs-gpios = <&gpio2 16 GPIO_ACTIVE_LOW>,
++		<&gpio2 17 GPIO_ACTIVE_LOW>; */
++
++	bmi08x_accel: bmi08x@1 {
++		compatible = "bosch,bmi08x-accel";
++		reg = <1>;
++		/* int-gpios = <&gpio3 20 GPIO_ACTIVE_HIGH>; */
++		spi-max-frequency = <10000000>;
++		int1-map-io = <0x01>;
++		int2-map-io = <0x00>;
++		int1-conf-io = <0x04>;
++		int2-conf-io = <0x00>;
++		accel-hz = "800";
++		accel-fs = <24>;
++	};
++
++	bmi08x_gyro: bmi08x@2 {
++		compatible = "bosch,bmi08x-gyro";
++		reg = <2>;
++		/* int-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>; */
++		spi-max-frequency = <10000000>;
++		int3-4-map-io = <0x01>;
++		int3-4-conf-io = <0x02>;
++		gyro-hz = "1000_116";
++		gyro-fs = <1000>;
++	};
++};
++
++&lpi2c6 {
++	status = "okay";
++	pinctrl-0 = <&lpi2c6_default>;
++	pinctrl-names = "default";
++};
++
++&lpi2c8 {
++	status = "okay";
++	pinctrl-0 = <&lpi2c8_default>;
++	pinctrl-names = "default";
++};
++
++&lpuart3 {
++	status = "okay";
++	current-speed = <115200>;
++	pinctrl-0 = <&lpuart3_default>;
++	pinctrl-names = "default";
++};
++
++&lpuart7 {
++	status = "okay";
++	current-speed = <115200>;
++	pinctrl-0 = <&lpuart7_default>;
++	pinctrl-names = "default";
++};
++
++&tpm3 {
++	status = "okay";
++	pinctrl-0 = <&tpm3_pwm1>;
++	pinctrl-names = "default";
++};
++
++&tpm4 {
++	compatible = "nxp,tpm-qdec";
++	status = "okay";
++	pinctrl-0 = <&tpm4_pwm2_pwm3>;
++	pinctrl-names = "default";
++	micro-ticks-per-rev = <685440000>;
++	/delete-property/ prescaler;
++};
++
++&tpm5 {
++	status = "okay";
++	pinctrl-0 = <&tpm5_pwm4_pwm5_pwm6>;
++	pinctrl-names = "default";
++};
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7.yaml b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7.yaml
+new file mode 100644
+index 00000000000..d2365f49fc0
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7.yaml
+@@ -0,0 +1,21 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++identifier: mr_navq95a/mimx9596/m7
++name: NXP MR NavQ95a
++type: mcu
++arch: arm
++ram: 256
++flash: 256
++toolchain:
++  - zephyr
++  - gnuarmemb
++supported:
++  - uart
++  - i2c
++  - pwm
++  - spi
++vendor: nxp
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr.dts b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr.dts
+new file mode 100644
+index 00000000000..94b0d67b40c
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr.dts
+@@ -0,0 +1,23 @@
++/*
++ * Copyright 2024 NXP
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++/dts-v1/;
++
++#include "mr_navq95a_mimx9596_m7.dts"
++
++/ {
++	model = "NXP NavQ95 DDR variant";
++
++	chosen {
++		zephyr,sram = &ddr;
++		/delete-property/ zephyr,flash;
++	};
++
++	ddr: memory@80000000 {
++		device_type = "memory";
++		reg = <0x80000000 DT_SIZE_M(4)>;
++	};
++};
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr.yaml b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr.yaml
+new file mode 100644
+index 00000000000..6d61363f111
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr.yaml
+@@ -0,0 +1,17 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++identifier: mr_navq95a/mimx9596/m7/ddr
++name: NXP MR NavQ95a DDR variant
++type: mcu
++arch: arm
++ram: 256
++toolchain:
++  - zephyr
++  - gnuarmemb
++supported:
++  - uart
++vendor: nxp
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr_defconfig b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr_defconfig
+new file mode 100644
+index 00000000000..69fb8edb488
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_ddr_defconfig
+@@ -0,0 +1,24 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++# clock-related configurations
++CONFIG_CLOCK_CONTROL=y
++
++# serial interface-related configurations
++CONFIG_SERIAL=y
++CONFIG_UART_INTERRUPT_DRIVEN=y
++CONFIG_UART_CONSOLE=y
++CONFIG_CONSOLE=y
++
++# SCMI-related configurations
++CONFIG_MBOX=y
++CONFIG_MBOX_INIT_PRIORITY=0
++CONFIG_ARM_SCMI=y
++
++# kernel-related configurations
++CONFIG_XIP=n
++
++CONFIG_I3C=y
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_defconfig b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_defconfig
+new file mode 100644
+index 00000000000..c8753ce949c
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_defconfig
+@@ -0,0 +1,27 @@
++#
++# Copyright 2025 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++CONFIG_CLOCK_CONTROL=y
++CONFIG_SERIAL=y
++CONFIG_UART_CONSOLE=y
++CONFIG_UART_INTERRUPT_DRIVEN=y
++CONFIG_CONSOLE=y
++CONFIG_XIP=y
++CONFIG_MBOX=y
++CONFIG_MBOX_INIT_PRIORITY=0
++CONFIG_ARM_SCMI=y
++CONFIG_ARM_SCMI_NXP_VENDOR_EXTENSIONS=y
++CONFIG_FLASH_MCUX_FLEXSPI_FORCE_USING_OVRDVAL=y
++CONFIG_FLASH_MCUX_FLEXSPI_OVRDVAL=27
++
++CONFIG_BOOT_SIGNATURE_TYPE_NONE=y
++CONFIG_MCUBOOT_SERIAL=y
++CONFIG_BOOT_SERIAL_WAIT_FOR_DFU=y
++CONFIG_BOOT_SERIAL_NO_APPLICATION=y
++CONFIG_UART_CONSOLE=n
++
++# FIXME: Default optimization level will lockup at erasing slot in NOR flash DDR mode
++CONFIG_DEBUG_OPTIMIZATIONS=y
+\ No newline at end of file
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash.dts b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash.dts
+new file mode 100644
+index 00000000000..5f64adfdad0
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash.dts
+@@ -0,0 +1,18 @@
++/*
++ * Copyright 2024 NXP
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++/dts-v1/;
++
++#include "mr_navq95a_mimx9596_m7.dts"
++
++/ {
++	model = "NXP NavQ95 NOR flash variant";
++
++	chosen {
++		zephyr,flash = &mx25um51345g;
++		zephyr,code-partition = &slot0_partition;
++	};
++};
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash.yaml b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash.yaml
+new file mode 100644
+index 00000000000..65c3ae2f5f1
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash.yaml
+@@ -0,0 +1,18 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++identifier: mr_navq95a/mimx9596/m7/flash
++name: NXP MR NavQ95a NOR flash variant
++type: mcu
++arch: arm
++ram: 256
++flash: 32768
++toolchain:
++  - zephyr
++  - gnuarmemb
++supported:
++  - uart
++vendor: nxp
+diff --git a/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash_defconfig b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash_defconfig
+new file mode 100644
+index 00000000000..e156d6d24de
+--- /dev/null
++++ b/boards/nxp/mr_navq95a/mr_navq95a_mimx9596_m7_flash_defconfig
+@@ -0,0 +1,22 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++CONFIG_CLOCK_CONTROL=y
++CONFIG_SERIAL=y
++CONFIG_UART_CONSOLE=y
++CONFIG_UART_INTERRUPT_DRIVEN=y
++CONFIG_CONSOLE=y
++CONFIG_XIP=y
++CONFIG_MBOX=y
++CONFIG_MBOX_INIT_PRIORITY=0
++CONFIG_ARM_SCMI=y
++CONFIG_ARM_SCMI_NXP_VENDOR_EXTENSIONS=y
++CONFIG_I3C=y
++
++CONFIG_BOOTLOADER_MCUBOOT=y
++CONFIG_MCUBOOT_GENERATE_UNSIGNED_IMAGE=y
++CONFIG_MCUBOOT_GENERATE_CONFIRMED_IMAGE=y
++CONFIG_FLASH_BASE_ADDRESS=0x2000000
+diff --git a/boards/nxp/mr_navq95b/Kconfig.mr_navq95b b/boards/nxp/mr_navq95b/Kconfig.mr_navq95b
+new file mode 100644
+index 00000000000..734a9de0ea7
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/Kconfig.mr_navq95b
+@@ -0,0 +1,6 @@
++# Copyright 2024 NXP
++# SPDX-License-Identifier: Apache-2.0
++
++config BOARD_MR_NAVQ95B
++	select SOC_MIMX9596_M7 if BOARD_MR_NAVQ95B_MIMX9596_M7 || BOARD_MR_NAVQ95B_MIMX9596_M7_DDR || BOARD_MR_NAVQ95B_MIMX9596_M7_FLASH
++	select SOC_PART_NUMBER_MIMX9596AVZXN
+diff --git a/boards/nxp/mr_navq95b/board.cmake b/boards/nxp/mr_navq95b/board.cmake
+new file mode 100644
+index 00000000000..4c63ebd7930
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/board.cmake
+@@ -0,0 +1,9 @@
++# SPDX-License-Identifier: Apache-2.0
++
++if (CONFIG_SOC_MIMX9596_M7)
++  board_runner_args(jlink "--device=cortex-m7")
++  board_runner_args(pyocd "--target=mimx95_cm7")
++endif()
++
++include(${ZEPHYR_BASE}/boards/common/jlink.board.cmake)
++include(${ZEPHYR_BASE}/boards/common/pyocd.board.cmake)
+\ No newline at end of file
+diff --git a/boards/nxp/mr_navq95b/board.yml b/boards/nxp/mr_navq95b/board.yml
+new file mode 100644
+index 00000000000..cf81e14058a
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/board.yml
+@@ -0,0 +1,11 @@
++board:
++  name: mr_navq95b
++  full_name: MR NavQ95b
++  vendor: nxp
++  socs:
++  - name: mimx9596
++    variants:
++    - name: ddr
++      cpucluster: m7
++    - name: flash
++      cpucluster: m7
+diff --git a/boards/nxp/mr_navq95b/doc/index.rst b/boards/nxp/mr_navq95b/doc/index.rst
+new file mode 100644
+index 00000000000..96688426f9c
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/doc/index.rst
+@@ -0,0 +1,3 @@
++.. zephyr:board:: mr_navq95b
++
++TODO
+\ No newline at end of file
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b-pinctrl.dtsi b/boards/nxp/mr_navq95b/mr_navq95b-pinctrl.dtsi
+new file mode 100644
+index 00000000000..37579c3fe83
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b-pinctrl.dtsi
+@@ -0,0 +1,189 @@
++/*
++ * Copyright 2024 NXP
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <nxp/nxp_imx/mimx9596avzxn-pinctrl.dtsi>
++
++&pinctrl {
++	flexspi_default: flexspi_default {
++		group0 {
++			pinmux = <&iomuxc_xspi1_data0_flexspi_a_data_bit_flexspi1_a_data_bit0>,
++				<&iomuxc_xspi1_data1_flexspi_a_data_bit_flexspi1_a_data_bit1>,
++				<&iomuxc_xspi1_data2_flexspi_a_data_bit_flexspi1_a_data_bit2>,
++				<&iomuxc_xspi1_data3_flexspi_a_data_bit_flexspi1_a_data_bit3>,
++				<&iomuxc_xspi1_data4_flexspi_a_data_bit_flexspi1_a_data_bit4>,
++				<&iomuxc_xspi1_data5_flexspi_a_data_bit_flexspi1_a_data_bit5>,
++				<&iomuxc_xspi1_data6_flexspi_a_data_bit_flexspi1_a_data_bit6>,
++				<&iomuxc_xspi1_data7_flexspi_a_data_bit_flexspi1_a_data_bit7>;
++			slew-rate = "slow";
++			drive-strength = "x1";
++		};
++		group1 {
++			pinmux = <&iomuxc_xspi1_sclk_flexspi_a_sclk_flexspi1_a_sclk>,
++				<&iomuxc_xspi1_dqs_flexspi_a_dqs_flexspi1_a_dqs>;
++			slew-rate = "slow";
++			drive-strength = "x6";
++		};
++		group2 {
++			pinmux = <&iomuxc_xspi1_ss0_b_flexspi_a_ss_b_flexspi1_a_ss0_b>,
++				<&iomuxc_xspi1_ss1_b_flexspi_a_ss_b_flexspi1_a_ss1_b>;
++			bias-pull-up;
++			slew-rate = "fast";
++			drive-strength = "x6";
++		};
++	};
++
++	lpspi1_default: lpspi1_default {
++		group0 {
++			pinmux = <&iomuxc_sai1_txfs_lpspi_pcs_lpspi1_pcs0>,
++				<&iomuxc_sai1_txd0_lpspi_sck_lpspi1_sck>,
++				<&iomuxc_sai1_txc_lpspi_sin_lpspi1_sin>,
++				<&iomuxc_sai1_rxd0_lpspi_sout_lpspi1_sout>;
++			/*<&iomuxc_sai1_txfs_gpio_io_bit_gpio1_io_bit11>, GPIO CS*/
++			bias-pull-down;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	lpspi4_default: lpspi4_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io16_lpspi_pcs_lpspi4_pcs2>,
++			    <&iomuxc_gpio_io17_lpspi_pcs_lpspi4_pcs1>,
++				<&iomuxc_gpio_io37_lpspi_sck_lpspi4_sck>,
++				<&iomuxc_gpio_io19_lpspi_sin_lpspi4_sin>,
++				<&iomuxc_gpio_io36_lpspi_sout_lpspi4_sout>;
++			/* GPIO CS */
++			/* <&iomuxc_gpio_io16_gpio_io_bit_gpio2_io_bit16>,
++				<&iomuxc_gpio_io17_gpio_io_bit_gpio2_io_bit17>,*/
++			bias-pull-down;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	lpi2c6_default: lpi2c6_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io03_lpi2c_scl_lpi2c6_scl>,
++				<&iomuxc_gpio_io02_lpi2c_sda_lpi2c6_sda>;
++			drive-open-drain;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++			input-enable;
++		};
++	};
++
++	lpi2c8_default: lpi2c8_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io11_lpi2c_scl_lpi2c8_scl>,
++				<&iomuxc_gpio_io10_lpi2c_sda_lpi2c8_sda>;
++			drive-open-drain;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++			input-enable;
++		};
++	};
++
++	lpuart1_default: lpuart1_default {
++		group0 {
++			pinmux = <&iomuxc_uart1_rxd_lpuart_rx_lpuart1_rx>,
++				<&iomuxc_uart1_txd_lpuart_tx_lpuart1_tx>;
++			bias-pull-up;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	lpuart2_default: lpuart2_default {
++		group0 {
++			pinmux = <&iomuxc_uart2_rxd_lpuart_rx_lpuart2_rx>,
++				<&iomuxc_uart2_txd_lpuart_tx_lpuart2_tx>;
++			bias-pull-up;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	lpuart7_default: lpuart7_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io09_lpuart_rx_lpuart7_rx>,
++				<&iomuxc_gpio_io08_lpuart_tx_lpuart7_tx>;
++			bias-pull-up;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	sai3_default: sai3_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io16_sai_tx_bclk_sai3_tx_bclk>,
++				 <&iomuxc_gpio_io17_sai_mclk_sai3_mclk>,
++				 <&iomuxc_gpio_io20_sai_rx_data_bit_sai3_rx_data_bit0>,
++				 <&iomuxc_gpio_io21_sai_tx_data_bit_sai3_tx_data_bit0>,
++				 <&iomuxc_gpio_io26_sai_tx_sync_sai3_tx_sync>;
++			bias-pull-up;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	tpm2_default: tpm2_default {
++		group0 {
++			pinmux = <&iomuxc_i2c2_scl_tpm_ch_tpm2_ch2>,
++				<&iomuxc_i2c2_sda_tpm_ch_tpm2_ch3>;
++			drive-open-drain;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++			input-enable;
++		};
++	};
++
++	i3c2_default: i3c2_default {
++		group0 {
++			pinmux = <&iomuxc_enet1_mdc_i3c_scl_i3c2_scl>,
++				<&iomuxc_enet1_mdio_i3c_sda_i3c2_sda>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++			input-enable;
++			bias-pull-up;
++		};
++	};
++
++	flexcan5_default: flexcan5_default {
++		group0 {
++			pinmux = <&iomuxc_gpio_io22_can_tx_can5_tx>,
++				<&iomuxc_gpio_io23_can_rx_can5_rx>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	/* pwm pins */
++	tpm3_pwm1: tpm3_pwm1 {
++		group0 {
++			pinmux = <&iomuxc_gpio_io20_tpm_ch_tpm3_ch1>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	tpm4_pwm2_pwm3: tpm4_pwm2_pwm3 {
++		group0 {
++			pinmux = <&iomuxc_gpio_io05_tpm_ch_tpm4_ch0>,
++				<&iomuxc_gpio_io21_tpm_ch_tpm4_ch1>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++
++	tpm5_pwm4_pwm5_pwm6: tpm5_pwm4_pwm5_pwm6 {
++		group0 {
++			pinmux = <&iomuxc_gpio_io06_tpm_ch_tpm5_ch0>,
++				<&iomuxc_gpio_io18_tpm_ch_tpm5_ch2>,
++				<&iomuxc_gpio_io26_tpm_ch_tpm5_ch3>;
++			slew-rate = "slightly_fast";
++			drive-strength = "x4";
++		};
++	};
++};
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7.dts b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7.dts
+new file mode 100644
+index 00000000000..ae24ad1e2d4
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7.dts
+@@ -0,0 +1,180 @@
++/*
++ * Copyright 2024 NXP
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++/dts-v1/;
++
++#include <nxp/nxp_imx95_m7.dtsi>
++#include <zephyr/dt-bindings/pwm/pwm.h>
++#include "mr_navq95b-pinctrl.dtsi"
++#include <zephyr/dt-bindings/sensor/icm42688.h>
++
++/ {
++	model = "NXP MR NavQ95b";
++	compatible = "nxp,mr_navq95b";
++
++	chosen {
++		/* TCM */
++		zephyr,flash = &itcm;
++		zephyr,sram = &dtcm;
++
++		zephyr,flash-controller = &mx25um51345g;
++		zephyr,console = &lpuart2;
++		zephyr,shell-uart = &lpuart2;
++
++		zephyr,code-partition = &itcm;
++	};
++};
++
++&flexspi {
++	status = "okay";
++	ahb-prefetch;
++	ahb-read-addr-opt;
++	ahb-bufferable;
++	ahb-cacheable;
++	rx-clock-source = <1>;
++	pinctrl-0 = <&flexspi_default>;
++	pinctrl-names = "default";
++	mx25um51345g: mx25um51345g@0 {
++		compatible = "nxp,imx-flexspi-mx25um51345g";
++		/* MX25UM51345G is 64MB, 512MBit flash part */
++		size = <DT_SIZE_M(64*8)>;
++		reg = <0>;
++		spi-max-frequency = <200000000>;
++		status = "okay";
++		jedec-id = [c2 81 3a];
++		erase-block-size = <4096>;
++		write-block-size = <2>;
++		cs-interval = <2>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			/*
++			 * Partition sizes must be aligned
++			 * to the flash memory sector size of 4KB.
++			 * 
++			 * boot_partition is left out since that will
++			 * run from ITCM
++			 */
++			slot0_partition: partition@0 {
++				label = "image-0";
++				reg = <0x00000000 DT_SIZE_M(7)>;
++			};
++			slot1_partition: partition@700000 {
++				label = "image-1";
++				reg = <0x00700000 DT_SIZE_M(7)>;
++			};
++			storage_partition: partition@E00000 {
++				label = "storage";
++				reg = <0x00E00000 DT_SIZE_M(2)>;
++			};
++		};
++	};
++};
++
++&lpspi1 {
++	pinctrl-0 = <&lpspi1_default>;
++	pinctrl-names = "default";
++	status = "okay";
++	/* cs-gpios =<&gpio1 11 GPIO_ACTIVE_LOW>; */
++
++	icm42688_0: icm42688p0@0 {
++		compatible = "invensense,icm42688"; /* icm42686 */
++		reg = <0>;
++		/* int-gpios = <&gpio3 19 GPIO_ACTIVE_HIGH>; */
++		spi-max-frequency = <24000000>;
++		accel-pwr-mode = <ICM42688_DT_ACCEL_LN>;
++		accel-odr = <ICM42688_DT_ACCEL_ODR_1000>;
++		accel-fs = <ICM42688_DT_ACCEL_FS_16>;
++		gyro-pwr-mode = <ICM42688_DT_GYRO_LN>;
++		gyro-odr = <ICM42688_DT_GYRO_ODR_1000>;
++		gyro-fs = <ICM42688_DT_GYRO_FS_2000>;
++	};
++};
++
++&lpspi4 {
++	pinctrl-0 = <&lpspi4_default>;
++	pinctrl-names = "default";
++	status = "okay";
++	transfer-delay = <50>;
++	sck-pcs-delay = <25>;
++	pcs-sck-delay = <25>;
++	/* cs-gpios = <&gpio2 16 GPIO_ACTIVE_LOW>,
++		<&gpio2 17 GPIO_ACTIVE_LOW>; */
++
++	bmi08x_accel: bmi08x@1 {
++		compatible = "bosch,bmi08x-accel";
++		reg = <1>;
++		/* int-gpios = <&gpio3 20 GPIO_ACTIVE_HIGH>; */
++		spi-max-frequency = <10000000>;
++		int1-map-io = <0x01>;
++		int2-map-io = <0x00>;
++		int1-conf-io = <0x04>;
++		int2-conf-io = <0x00>;
++		accel-hz = "800";
++		accel-fs = <24>;
++	};
++
++	bmi08x_gyro: bmi08x@2 {
++		compatible = "bosch,bmi08x-gyro";
++		reg = <2>;
++		/* int-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>; */
++		spi-max-frequency = <10000000>;
++		int3-4-map-io = <0x01>;
++		int3-4-conf-io = <0x02>;
++		gyro-hz = "1000_116";
++		gyro-fs = <1000>;
++	};
++};
++
++&lpi2c6 {
++	status = "okay";
++	pinctrl-0 = <&lpi2c6_default>;
++	pinctrl-names = "default";
++};
++
++&lpi2c8 {
++	status = "okay";
++	pinctrl-0 = <&lpi2c8_default>;
++	pinctrl-names = "default";
++};
++
++&lpuart2 {
++	status = "okay";
++	current-speed = <115200>;
++	pinctrl-0 = <&lpuart2_default>;
++	pinctrl-names = "default";
++};
++
++&lpuart7 {
++	status = "okay";
++	current-speed = <115200>;
++	pinctrl-0 = <&lpuart7_default>;
++	pinctrl-names = "default";
++};
++
++&tpm3 {
++	status = "okay";
++	pinctrl-0 = <&tpm3_pwm1>;
++	pinctrl-names = "default";
++};
++
++&tpm4 {
++	compatible = "nxp,tpm-qdec";
++	status = "okay";
++	pinctrl-0 = <&tpm4_pwm2_pwm3>;
++	pinctrl-names = "default";
++	micro-ticks-per-rev = <685440000>;
++	/delete-property/ prescaler;
++};
++
++&tpm5 {
++	status = "okay";
++	pinctrl-0 = <&tpm5_pwm4_pwm5_pwm6>;
++	pinctrl-names = "default";
++};
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7.yaml b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7.yaml
+new file mode 100644
+index 00000000000..6eb71821930
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7.yaml
+@@ -0,0 +1,21 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++identifier: mr_navq95b/mimx9596/m7
++name: NXP MR NavQ95b
++type: mcu
++arch: arm
++ram: 256
++flash: 256
++toolchain:
++  - zephyr
++  - gnuarmemb
++supported:
++  - uart
++  - i2c
++  - pwm
++  - spi
++vendor: nxp
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr.dts b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr.dts
+new file mode 100644
+index 00000000000..ef67ed6fdc9
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr.dts
+@@ -0,0 +1,23 @@
++/*
++ * Copyright 2024 NXP
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++/dts-v1/;
++
++#include "mr_navq95b_mimx9596_m7.dts"
++
++/ {
++	model = "NXP NavQ95 DDR variant";
++
++	chosen {
++		zephyr,sram = &ddr;
++		/delete-property/ zephyr,flash;
++	};
++
++	ddr: memory@80000000 {
++		device_type = "memory";
++		reg = <0x80000000 DT_SIZE_M(4)>;
++	};
++};
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr.yaml b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr.yaml
+new file mode 100644
+index 00000000000..107a84cac2e
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr.yaml
+@@ -0,0 +1,17 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++identifier: mr_navq95b/mimx9596/m7/ddr
++name: NXP MR NavQ95b DDR variant
++type: mcu
++arch: arm
++ram: 256
++toolchain:
++  - zephyr
++  - gnuarmemb
++supported:
++  - uart
++vendor: nxp
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr_defconfig b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr_defconfig
+new file mode 100644
+index 00000000000..69fb8edb488
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_ddr_defconfig
+@@ -0,0 +1,24 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++# clock-related configurations
++CONFIG_CLOCK_CONTROL=y
++
++# serial interface-related configurations
++CONFIG_SERIAL=y
++CONFIG_UART_INTERRUPT_DRIVEN=y
++CONFIG_UART_CONSOLE=y
++CONFIG_CONSOLE=y
++
++# SCMI-related configurations
++CONFIG_MBOX=y
++CONFIG_MBOX_INIT_PRIORITY=0
++CONFIG_ARM_SCMI=y
++
++# kernel-related configurations
++CONFIG_XIP=n
++
++CONFIG_I3C=y
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_defconfig b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_defconfig
+new file mode 100644
+index 00000000000..c8753ce949c
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_defconfig
+@@ -0,0 +1,27 @@
++#
++# Copyright 2025 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++CONFIG_CLOCK_CONTROL=y
++CONFIG_SERIAL=y
++CONFIG_UART_CONSOLE=y
++CONFIG_UART_INTERRUPT_DRIVEN=y
++CONFIG_CONSOLE=y
++CONFIG_XIP=y
++CONFIG_MBOX=y
++CONFIG_MBOX_INIT_PRIORITY=0
++CONFIG_ARM_SCMI=y
++CONFIG_ARM_SCMI_NXP_VENDOR_EXTENSIONS=y
++CONFIG_FLASH_MCUX_FLEXSPI_FORCE_USING_OVRDVAL=y
++CONFIG_FLASH_MCUX_FLEXSPI_OVRDVAL=27
++
++CONFIG_BOOT_SIGNATURE_TYPE_NONE=y
++CONFIG_MCUBOOT_SERIAL=y
++CONFIG_BOOT_SERIAL_WAIT_FOR_DFU=y
++CONFIG_BOOT_SERIAL_NO_APPLICATION=y
++CONFIG_UART_CONSOLE=n
++
++# FIXME: Default optimization level will lockup at erasing slot in NOR flash DDR mode
++CONFIG_DEBUG_OPTIMIZATIONS=y
+\ No newline at end of file
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash.dts b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash.dts
+new file mode 100644
+index 00000000000..80f26c26adb
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash.dts
+@@ -0,0 +1,18 @@
++/*
++ * Copyright 2024 NXP
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++/dts-v1/;
++
++#include "mr_navq95b_mimx9596_m7.dts"
++
++/ {
++	model = "NXP NavQ95 NOR flash variant";
++
++	chosen {
++		zephyr,flash = &mx25um51345g;
++		zephyr,code-partition = &slot0_partition;
++	};
++};
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash.yaml b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash.yaml
+new file mode 100644
+index 00000000000..fc7bd1a38eb
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash.yaml
+@@ -0,0 +1,18 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++identifier: mr_navq95b/mimx9596/m7/flash
++name: NXP MR NavQ95b NOR flash variant
++type: mcu
++arch: arm
++ram: 256
++flash: 32768
++toolchain:
++  - zephyr
++  - gnuarmemb
++supported:
++  - uart
++vendor: nxp
+diff --git a/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash_defconfig b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash_defconfig
+new file mode 100644
+index 00000000000..e156d6d24de
+--- /dev/null
++++ b/boards/nxp/mr_navq95b/mr_navq95b_mimx9596_m7_flash_defconfig
+@@ -0,0 +1,22 @@
++#
++# Copyright 2024 NXP
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++CONFIG_CLOCK_CONTROL=y
++CONFIG_SERIAL=y
++CONFIG_UART_CONSOLE=y
++CONFIG_UART_INTERRUPT_DRIVEN=y
++CONFIG_CONSOLE=y
++CONFIG_XIP=y
++CONFIG_MBOX=y
++CONFIG_MBOX_INIT_PRIORITY=0
++CONFIG_ARM_SCMI=y
++CONFIG_ARM_SCMI_NXP_VENDOR_EXTENSIONS=y
++CONFIG_I3C=y
++
++CONFIG_BOOTLOADER_MCUBOOT=y
++CONFIG_MCUBOOT_GENERATE_UNSIGNED_IMAGE=y
++CONFIG_MCUBOOT_GENERATE_CONFIRMED_IMAGE=y
++CONFIG_FLASH_BASE_ADDRESS=0x2000000
+-- 
+2.34.1
+

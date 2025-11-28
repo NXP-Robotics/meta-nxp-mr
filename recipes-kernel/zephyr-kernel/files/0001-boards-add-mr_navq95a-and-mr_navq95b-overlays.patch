@@ -1,0 +1,42 @@
+From 144e0573ed7a9dfe67bf44f96f5265293fba6c9d Mon Sep 17 00:00:00 2001
+From: Andre Heinemans <andre.heinemans@nxp.com>
+Date: Fri, 28 Nov 2025 11:00:05 +0100
+Subject: [PATCH] boards: add mr_navq95a and mr_navq95b overlays
+
+Upstream-Status: Inappropriate [Cross-compilation specific]
+
+Signed-off-by: Andre Heinemans <andre.heinemans@nxp.com>
+---
+ boot/zephyr/boards/mr_navq95a_mimx9596_m7.overlay | 5 +++++
+ boot/zephyr/boards/mr_navq95b_mimx9596_m7.overlay | 5 +++++
+ 2 files changed, 10 insertions(+)
+ create mode 100644 boot/zephyr/boards/mr_navq95a_mimx9596_m7.overlay
+ create mode 100644 boot/zephyr/boards/mr_navq95b_mimx9596_m7.overlay
+
+diff --git a/boot/zephyr/boards/mr_navq95a_mimx9596_m7.overlay b/boot/zephyr/boards/mr_navq95a_mimx9596_m7.overlay
+new file mode 100644
+index 00000000..95dd2d6e
+--- /dev/null
++++ b/boot/zephyr/boards/mr_navq95a_mimx9596_m7.overlay
+@@ -0,0 +1,5 @@
++/ {
++	chosen {
++		zephyr,code-partition = &itcm;
++	};
++};
+\ No newline at end of file
+diff --git a/boot/zephyr/boards/mr_navq95b_mimx9596_m7.overlay b/boot/zephyr/boards/mr_navq95b_mimx9596_m7.overlay
+new file mode 100644
+index 00000000..95dd2d6e
+--- /dev/null
++++ b/boot/zephyr/boards/mr_navq95b_mimx9596_m7.overlay
+@@ -0,0 +1,5 @@
++/ {
++	chosen {
++		zephyr,code-partition = &itcm;
++	};
++};
+\ No newline at end of file
+-- 
+2.34.1
+
