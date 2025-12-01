@@ -11,6 +11,7 @@ SRC_URI:append:imx95-navq = " \
          file://mali.cfg \
          file://input.cfg \
          file://video-dummy.cfg \
+         file://panel-ili9881c.cfg \
 "
 
 SRC_URI:append:imx8mpnavq = " \
@@ -24,7 +25,7 @@ SRC_URI:append:imx8mpnavq = " \
 "
 
 SRCBRANCH = "imx95-navq-lf-6.12.y"
-SRCREV = "542e3aa4d0eb462125119db617428a34838729a2"
+SRCREV = "6ecaaea65e05aa37d435c1ba2e089732ede176df"
 LINUX_IMX_SRC = "git://git@github.com/NXPHoverGames/linux-imx-private.git;protocol=ssh;branch=${SRCBRANCH}"
 
 do_configure:append () {
