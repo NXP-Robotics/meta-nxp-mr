@@ -12,6 +12,7 @@ SRC_URI:append:imx95-navq = " \
          file://input.cfg \
          file://video-dummy.cfg \
          file://panel-ili9881c.cfg \
+         file://cam.cfg \
 "
 
 SRC_URI:append:imx8mpnavq = " \

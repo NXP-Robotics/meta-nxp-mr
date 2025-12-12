@@ -85,6 +85,7 @@ IMAGE_INSTALL:append:imx95-navq = " \
 	libcamera \
 	libcamera-gst \
 	libcamera-pycamera \
+	neo-ipa-uguzzi \
 	mali-imx \
 	mali-imx-dev \
 	mali-imx-opencl-icd-dev \

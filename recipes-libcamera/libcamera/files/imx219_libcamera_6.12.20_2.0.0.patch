@@ -1,0 +1,29 @@
+diff --git a/src/ipa/nxp/cam_helper/meson.build b/src/ipa/nxp/cam_helper/meson.build
+index 9a1bcd34..4776d8e2 100644
+--- a/src/ipa/nxp/cam_helper/meson.build
++++ b/src/ipa/nxp/cam_helper/meson.build
+@@ -10,6 +10,7 @@ nxp_ipa_cam_helper_sources = files([
+     'camera_helper_os08a20.cpp',
+     'camera_helper_ov5640.cpp',
+     'camera_helper_ox05b1s.cpp',
++    'camera_helper_imx219.cpp',
+     'md_parser_ox.cpp',
+ ])
+ 
+diff --git a/src/ipa/nxp/neo/data/meson.build b/src/ipa/nxp/neo/data/meson.build
+index eaea4bea..33cec6bf 100644
+--- a/src/ipa/nxp/neo/data/meson.build
++++ b/src/ipa/nxp/neo/data/meson.build
+@@ -5,9 +5,10 @@ conf_files = files([
+     'os08a20.yaml',
+     'ov5640.yaml',
+     'ox05b1s.yaml',
++    'imx219.yaml',
+     'uncalibrated.yaml',
+ ])
+ 
+ install_data(conf_files,
+              install_dir : ipa_data_dir / 'nxp' / 'neo',
+-             install_tag : 'runtime')
+\ No newline at end of file
++             install_tag : 'runtime')
