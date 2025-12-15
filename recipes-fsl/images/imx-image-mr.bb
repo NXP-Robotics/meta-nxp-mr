@@ -86,6 +86,9 @@ IMAGE_INSTALL:append:imx95-navq = " \
 	libcamera-gst \
 	libcamera-pycamera \
 	neo-ipa-uguzzi \
+	weston \
+	xwayland \
+	weston-xwayland \
 	mali-imx \
 	mali-imx-dev \
 	mali-imx-opencl-icd-dev \
@@ -93,9 +96,17 @@ IMAGE_INSTALL:append:imx95-navq = " \
 	${G2D_SAMPLES} \
 	"
 
+# Don’t let pseudo track the transient lock file
+PSEUDO_IGNORE_PATHS:append = ",${IMAGE_ROOTFS}/etc/.pwd.lock"
+
+# Clean up the lock if it ends up in the rootfs
+remove_pwd_lock () {
+    rm -f ${IMAGE_ROOTFS}/etc/.pwd.lock || true
+}
+
 PACKAGE_EXCLUDE = "libgles3-imx-dev libegl-imx-dev libc6-dev"
 
-ROOTFS_POSTPROCESS_COMMAND += "write_build_info_to_rootfs;"
+ROOTFS_POSTPROCESS_COMMAND += "write_build_info_to_rootfs;remove_pwd_lock;"
 
 write_build_info_to_rootfs() {
     echo "Generating build info..."

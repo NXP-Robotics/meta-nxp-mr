@@ -152,6 +152,7 @@ orc orc-dev  \
 pciutils perl-dev pkgconfig polkit polkit-dev  \
 psmisc ptpd pulseaudio pulseaudio-dev libpulse libpulse0 libinput10 \
 libxkbcommon0 libxrandr2 libxcursor1 libxkbfile1 fontconfig-utils fontconfig seatd \
+liberation-fonts libxcvt libxfont2-2 libgl-mesa  \
 python2 python3-compile python3-dbus python3-dbus-dev  \
 python3-dev python3-nose python3-numpy python3-pkgutil  \
 python3-plistlib python3-pycairo python3-pycairo-dev  \
@@ -214,6 +215,15 @@ APTGET_EXTRA_PACKAGES += " \
     libavahi-client3 \
     libavahi-core7 \
     fontconfig \
+    fonts-liberation \
+    fonts-liberation2 \
+    libxcvt0 \
+    libxfont2 \
+    libxcb-composite0 \
+    libepoxy0 \
+    libxcb-dri2-0 \
+    x11-xkb-utils \
+    sed \
     seatd \
     python3-spidev \
     python3-libgpiod \

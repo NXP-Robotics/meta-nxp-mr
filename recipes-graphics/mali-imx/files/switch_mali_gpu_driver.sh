@@ -51,12 +51,28 @@ function restore_vulkan_from_backup() {
     fi
 }
 
+link_gbm() {
+  local target="/usr/lib/libgbm.so"
+  local source="$1"
+
+  # Remove existing file or symlink
+  if [[ -e "$target" || -L "$target" ]]; then
+    echo "Removing existing $target..."
+    sudo rm -f "$target" || { echo "ERROR: Failed to remove $target"; return 1; }
+  fi
+
+  # Create symlink  # Create symlink
+  echo "Linking $target -> $source"
+  sudo ln -s "$source" "$target" || { echo "ERROR: Failed to create symlink"; return 1; }
+}
+
 echo "🔧 Choose GPU driver to enable:"
 select choice in "mali_kbase" "panthor" "Exit"; do
     case $choice in
         mali_kbase)
             blacklist_module panthor
             unblacklist_module mali_kbase
+            link_gbm /usr/lib/mali-imx/libgbm.so.1.0.0
             add_ldconfig_path
             restore_vulkan_from_backup
             break
@@ -64,6 +80,7 @@ select choice in "mali_kbase" "panthor" "Exit"; do
         panthor)
             blacklist_module mali_kbase
             unblacklist_module panthor
+            link_gbm /usr/lib/aarch64-linux-gnu/libgbm.so.1.0.0
             remove_ldconfig_path
             switch_vulkan_to_backup
             break
