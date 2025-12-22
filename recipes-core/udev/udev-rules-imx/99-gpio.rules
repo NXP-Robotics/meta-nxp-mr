@@ -1,3 +1,4 @@
+SUBSYSTEM=="gpio", KERNELS=="*0020", GROUP="dialout", SYMLINK+="gpio_exp20"
 SUBSYSTEM=="gpio", KERNELS=="*0021", GROUP="dialout", SYMLINK+="gpio_exp21"
 SUBSYSTEM=="gpio", KERNELS=="*0022", GROUP="dialout", SYMLINK+="gpio_exp22"
 SUBSYSTEM=="gpio", KERNELS=="*0023", GROUP="dialout", SYMLINK+="gpio_exp23"
@@ -5,4 +6,3 @@ SUBSYSTEM=="gpio", KERNELS=="43810000.*", GROUP="dialout", SYMLINK+="gpio_gpio2"
 SUBSYSTEM=="gpio", KERNELS=="43820000.*", GROUP="dialout", SYMLINK+="gpio_gpio3"
 SUBSYSTEM=="gpio", KERNELS=="43840000.*", GROUP="dialout", SYMLINK+="gpio_gpio4"
 SUBSYSTEM=="gpio", KERNELS=="43850000.*", GROUP="dialout", SYMLINK+="gpio_gpio5"
-
