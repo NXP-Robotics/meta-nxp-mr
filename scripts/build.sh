@@ -44,7 +44,7 @@ for i in ${NXP_META_IMAGE}; do
         git pull
         popd
     else
-        git clone -b $BRANCH git@github.com:NXPHoverGames/${i}.git || exit $?
+        git clone -b $BRANCH git@github.com:NXP-Robotics/${i}.git || exit $?
     fi
     if [ $i = "${NXP_META_IMAGE}" ]; then
         pushd $i

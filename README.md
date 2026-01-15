@@ -18,7 +18,7 @@ sudo apt-get install -y gawk wget diffstat unzip texinfo \
 Run installer
 ---------------
 ```bash
-wget -q https://raw.githubusercontent.com/NXPHoverGames/meta-nxp-mr/refs/heads/lf-6.6.23-2.0.0-scarthgap/scripts/build.sh
+wget -q https://raw.githubusercontent.com/NXP-Robotics/meta-nxp-mr/refs/heads/lf-6.6.23-2.0.0-scarthgap/scripts/build.sh
 chmod a+x build.sh
 ./build.sh
 ```

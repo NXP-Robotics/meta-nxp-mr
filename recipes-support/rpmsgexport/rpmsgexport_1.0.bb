@@ -7,7 +7,7 @@ SRCBRANCH = "master"
 
 SRCREV = "d06645c390d37ed2b2c37cfe8575b765c92d461f"
 
-SRC_URI = "git://git@github.com/NXPHoverGames/rpmsgexport.git;protocol=ssh;branch=${SRCBRANCH}"
+SRC_URI = "git://git@github.com/NXP-Robotics/rpmsgexport.git;protocol=ssh;branch=${SRCBRANCH}"
 
 S = "${WORKDIR}/git"
 
