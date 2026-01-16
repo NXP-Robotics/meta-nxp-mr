@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Benjamin Perseghetti <bperseghetti@rudislabs.com>
+Date: Wed, 8 Jan 2025 00:00:00 +0000
+Subject: [PATCH] qemu-native: fix statx libc syscall emulation
+
+The statx syscall was using _syscall5 which bypasses pseudo's
+interception when QEMU_LIBCSYSCALL=1 is set. This causes file
+stat operations to fail incorrectly during chroot operations.
+
+Convert sys_statx to use libc wrapper when do_libcsyscall is enabled.
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Benjamin Perseghetti <bperseghetti@rudislabs.com>
+---
+ linux-user/syscall.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/linux-user/syscall.c b/linux-user/syscall.c
+index 05e8c6a..8acd8e0 100644
+--- a/linux-user/syscall.c
++++ b/linux-user/syscall.c
+@@ -453,8 +453,14 @@ _syscall5(int, kcmp, pid_t, pid1, pid_t, pid2, int, type,
+  * It is assumed that struct statx is architecture independent.
+  */
+ #if defined(TARGET_NR_statx) && defined(__NR_statx)
+-_syscall5(int, sys_statx, int, dirfd, const char *, pathname, int, flags,
+-          unsigned int, mask, struct target_statx *, statxbuf)
++static int sys_statx(int dirfd, const char *pathname, int flags,
++                     unsigned int mask, struct target_statx *statxbuf)
++{
++    if (do_libcsyscall) {
++        return statx(dirfd, pathname, flags, mask, (struct statx *)statxbuf);
++    }
++    return syscall(__NR_statx, dirfd, pathname, flags, mask, statxbuf);
++}
+ #endif
+ #if defined(TARGET_NR_membarrier) && defined(__NR_membarrier)
+ _syscall2(int, membarrier, int, cmd, int, flags)
