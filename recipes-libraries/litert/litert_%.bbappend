@@ -1,3 +1,8 @@
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+
+SRC_URI:append = " \
+	file://0001-fix-kleidiai-hash.patch \
+"
 
 do_install:append () {
 	install -d ${D}/usr/local/lib/python3.12/dist-packages

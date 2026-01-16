@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Benjamin Perseghetti <bperseghetti@rudislabs.com>
+Date: Wed, 15 Jan 2025 00:00:00 +0000
+Subject: [PATCH] xnnpack: Update kleidiai SHA256 hash after fetch
+
+GitLab regenerated the archive for kleidiai commit cddf991, changing the
+SHA256 hash. This patch fixes the hash in XNNPACK DownloadKleidiAI.cmake
+after XNNPACK is fetched but before it is configured.
+
+Upstream-Status: Pending [gitlab archive regeneration issue]
+
+Signed-off-by: Benjamin Perseghetti <bperseghetti@rudislabs.com>
+---
+ tfgit/tensorflow/lite/tools/cmake/modules/xnnpack.cmake | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/tfgit/tensorflow/lite/tools/cmake/modules/xnnpack.cmake b/tfgit/tensorflow/lite/tools/cmake/modules/xnnpack.cmake
+index 1111111..2222222 100644
+--- a/tfgit/tensorflow/lite/tools/cmake/modules/xnnpack.cmake
++++ b/tfgit/tensorflow/lite/tools/cmake/modules/xnnpack.cmake
+@@ -35,6 +35,16 @@ if(NOT xnnpack_POPULATED)
+   OverridableFetchContent_Populate(xnnpack)
+ endif()
+ 
++# Fix kleidiai SHA256 hash - GitLab regenerated the archive
++set(KLEIDIAI_CMAKE_FILE "${CMAKE_BINARY_DIR}/xnnpack/cmake/DownloadKleidiAI.cmake")
++if(EXISTS ${KLEIDIAI_CMAKE_FILE})
++  file(READ ${KLEIDIAI_CMAKE_FILE} KLEIDIAI_CMAKE_CONTENT)
++  string(REPLACE "88233e427be6579560073267575f00f3b5fc370a31a43bbdd87a1810bd4bf1b6"
++                 "5d4fe6b12ab999b40b26fc2760b3f1e2d134029acd9546541e118494fe11fb03"
++                 KLEIDIAI_CMAKE_CONTENT "${KLEIDIAI_CMAKE_CONTENT}")
++  file(WRITE ${KLEIDIAI_CMAKE_FILE} "${KLEIDIAI_CMAKE_CONTENT}")
++endif()
++
+ # May consider setting XNNPACK_USE_SYSTEM_LIBS if we want to control all
+ # dependencies by TFLite.
+ set(XNNPACK_BUILD_TESTS OFF CACHE BOOL "Disable XNNPACK test.")
