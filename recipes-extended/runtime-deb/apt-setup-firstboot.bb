@@ -10,7 +10,7 @@ SRC_URI = "file://apt-setup-firstboot.service"
 
 DEPENDS = "apt-native gnupg-native"
 
-UBUNTU_PACKAGE_NAME = "libopengl0 openssh-server libpam0g libwrap0 \
+UBUNTU_PACKAGE_NAME = "libopengl0 openssh-server libwrap0 \
                        openssh-sftp-server openssh-client libfido2-1 libcbor0.10 \
                        "
 UBUNTU_ARCH = "arm64"

@@ -98,7 +98,7 @@ APTGET_SKIP_CACHECLEAN ?= "0"
 APTGET_USE_NATIVE_DPKG ?= "1"
 
 # Minimum package needs for apt to work right. Nothing else.
-APTGET_INIT_FAKETOOLS_PACKAGES ?= "dbus systemd"
+APTGET_INIT_FAKETOOLS_PACKAGES ?= "dbus systemd libpam0g libpam-modules libpam-modules-bin"
 APTGET_INIT_PACKAGES ?= "dbus-user-session apt-transport-https ca-certificates software-properties-common apt-utils"
 
 APTGET_REMAINING_FAKETOOLS_PACKAGES ?= "kmod"
@@ -665,31 +665,12 @@ END_USER
 	# costly downloads
 	aptget_populate_cache_from_sstate
  
-        # dpkg preinst and postinst fixes
-        # This solves 2 problems
+        # dpkg preinst fixes
         # preinst usrmerge fails with faketools on systemd and udev
-        # postinst fails on systemd, polkit and udev with
-        # Assertion 'path_is_absolute(p)' failed at src/basic/chase.c:648, function chase(). Aborting.
-        # https://github.com/systemd/systemd/issues/28458
-        # Seems have to do with chroot and statx implemenation
         aptget_run_aptget -d download systemd
         aptget_run_dpkg --unpack systemd*.deb 
-        chroot "${APTGET_CHROOT_DIR}" /usr/bin/rm /var/lib/dpkg/info/systemd.postinst
-        aptget_run_aptget -d download systemd-resolved
-        aptget_run_dpkg --unpack systemd-resolved*.deb 
-        chroot "${APTGET_CHROOT_DIR}" /usr/bin/rm /var/lib/dpkg/info/systemd-resolved.postinst
-        aptget_run_aptget -d download systemd-timesyncd
-        aptget_run_dpkg --unpack systemd-timesyncd*.deb 
-        chroot "${APTGET_CHROOT_DIR}" /usr/bin/rm /var/lib/dpkg/info/systemd-timesyncd.postinst
-        aptget_run_aptget -d download polkitd
-        aptget_run_dpkg --unpack polkitd*.deb 
-        chroot "${APTGET_CHROOT_DIR}" /usr/bin/rm /var/lib/dpkg/info/polkitd.postinst
         aptget_run_aptget -d download udev
         aptget_run_dpkg --unpack udev*.deb 
-        chroot "${APTGET_CHROOT_DIR}" /usr/bin/rm /var/lib/dpkg/info/udev.postinst
-        aptget_run_aptget -d download libpaper1
-        aptget_run_dpkg --unpack libpaper1*.deb 
-        chroot "${APTGET_CHROOT_DIR}" /usr/bin/rm /var/lib/dpkg/info/libpaper1:arm64.postinst
         aptget_run_apt -y --fix-broken install
         rm ${APTGET_CHROOT_DIR}/*.deb
 

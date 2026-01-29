@@ -1,15 +1,15 @@
 [Unit]
 Description=Run apt-setup task only on first boot
-ConditionPathExistsGlob=/etc/apt-setup/*
+ConditionPathExistsGlob=/etc/apt-setup/*.deb
 Before=multi-user.target
 Before=getty.target
 Before=serial-getty@ttyLP0.service
-After=local-fs.target
+After=sysinit.target basic.target local-fs.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c 'dpkg -i /etc/apt-setup/*.deb'
-ExecStartPost=/bin/bash -c 'rm /etc/apt-setup/*'
+ExecStart=/bin/bash -c 'dpkg -i /etc/apt-setup/*.deb &> /etc/apt-setup/setup.log'
+ExecStartPost=/bin/bash -c 'rm /etc/apt-setup/*.deb'
 ExecStartPost=/bin/sleep 4
 
 [Install]

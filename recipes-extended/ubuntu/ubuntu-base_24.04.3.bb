@@ -227,4 +227,5 @@ APTGET_EXTRA_PACKAGES += " \
     seatd \
     python3-spidev \
     python3-libgpiod \
+    systemd-resolved systemd-timesyncd polkitd libpaper1 \
 "
