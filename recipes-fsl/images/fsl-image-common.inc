@@ -67,7 +67,7 @@ USER_SHELL_BASH ?= "/bin/bash"
 USER_PASSWD_USER ?= "zHipsIr46vtZk"
 APTGET_ADD_USERS ?= "user:${USER_PASSWD_USER}:${USER_SHELL_BASH}"
 
-HOST_NAME = "${MACHINE_ARCH}"
+HOST_NAME = "${MACHINE}"
 
 fakeroot do_update_host() {
 	set -x
