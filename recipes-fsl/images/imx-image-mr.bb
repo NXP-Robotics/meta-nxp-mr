@@ -40,6 +40,7 @@ IMAGE_INSTALL:append:imx8mpnavq = " \
 IMAGE_INSTALL:append:imx95-navq = " \
 	rpmsgexport \
 	rpmsgfs-remotedirs \
+	rpmsgfs-server \
 	"
 
 APTGET_EXTRA_PACKAGES += "\
