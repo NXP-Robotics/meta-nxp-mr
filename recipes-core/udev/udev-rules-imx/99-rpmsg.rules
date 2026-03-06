@@ -9,3 +9,7 @@ SUBSYSTEM=="tty", KERNEL=="ttyRPMSG0", GROUP="dialout", SYMLINK+="tty-zephyr"
 # NuttX tty's
 DRIVERS=="rpmsg_tty2", GROUP="dialout"
 
+# RpMsgFs
+SUBSYSTEM=="rpmsg", ACTION=="add", KERNEL=="virtio0.*", ATTR{name}=="rpmsgfs-*", RUN+="/bin/sh -c '/bin/echo /usr/bin/rpmsgexport /dev/rpmsg_ctrl0 $attr{name} $attr{src} $attr{dst} > /tmp/start-rpmsgfs && /bin/sh /tmp/start-rpmsgfs && /bin/rm /tmp/start-rpmsgfs'"
+SUBSYSTEM=="rpmsg", ACTION=="add", ATTR{name}=="rpmsg_ctrl", RUN+="/bin/sh /tmp/start-rpmsgfs"
+SUBSYSTEM=="rpmsg", KERNEL=="rpmsg*", ATTR{name}=="rpmsgfs-*", GROUP="dialout", SYMLINK+="rpmsgfs"
