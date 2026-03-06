@@ -1,0 +1,13 @@
+[Unit]
+Description=Start rpmsgfs-server daemon
+
+[Service]
+Type=simple
+User=user
+Group=user
+ExecStart=/bin/sh -c 'LOG=WARN /usr/bin/rpmsgfs-server /dev/rpmsgfs'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
