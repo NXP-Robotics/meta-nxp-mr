@@ -214,6 +214,7 @@ APTGET_EXTRA_PACKAGES += " \
     libavahi-common3 \
     libavahi-client3 \
     libavahi-core7 \
+    libssl-dev \
     fontconfig \
     fonts-liberation \
     fonts-liberation2 \
