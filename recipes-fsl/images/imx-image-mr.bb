@@ -41,6 +41,8 @@ IMAGE_INSTALL:append:imx95-navq = " \
 	rpmsgexport \
 	rpmsgfs-remotedirs \
 	rpmsgfs-server \
+	autoivnsw-sja1110-linux \
+	firmware-sja1110 \
 	"
 
 APTGET_EXTRA_PACKAGES += "\
