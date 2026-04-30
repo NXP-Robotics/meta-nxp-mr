@@ -19,8 +19,13 @@ S = "${WORKDIR}/git"
 SYSTEMD_SERVICE:${PN} = "mavlink-router.service"
 
 do_install:append() {
-    install -d ${D}/etc/mavlink-router/
-    install -p -m 755 ${WORKDIR}/main.conf ${D}/etc/mavlink-router/
+    install -d ${D}${sysconfdir}/mavlink-router
+    install -m 755 ${UNPACKDIR}/main.conf ${D}${sysconfdir}/mavlink-router/main.conf
+    SERVICE_FILE="${D}${systemd_system_unitdir}/mavlink-router.service"
+
+    if [ -f "$SERVICE_FILE" ]; then
+        sed -i '/^\[Unit\]/a ConditionPathExists=/dev/ttyproxy' "$SERVICE_FILE"
+    fi
 }
 
 inherit meson pkgconfig systemd
