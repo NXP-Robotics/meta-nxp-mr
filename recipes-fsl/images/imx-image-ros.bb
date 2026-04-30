@@ -9,6 +9,8 @@ SRC_URI = " \
 
 IMAGE_INSTALL += "\
     install-interface-config \
+    mavlink-router \
+    remoteidtransmitter \
 "
 
 ROS_VERSION = "jazzy"
