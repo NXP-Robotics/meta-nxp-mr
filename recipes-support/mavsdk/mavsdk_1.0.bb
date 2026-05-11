@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENSE.md;md5=84b641454775df91a2bae8fdd450e2e9"
 
 SRCBRANCH = "main"
 
-SRCREV = "cebb708a42c82c283b08177468eecd4c03f8c1ef"
+SRCREV = "d28d6b07eeefa80c6e562ab783ef0eebfe8d952e"
 
 SRC_URI = "gitsm://github.com/mavlink/MAVSDK.git;protocol=https;branch=${SRCBRANCH} \
            "
@@ -14,12 +14,15 @@ SRC_URI = "gitsm://github.com/mavlink/MAVSDK.git;protocol=https;branch=${SRCBRAN
 S = "${WORKDIR}/git"
 
 DEPENDS = " \
-	libtinyxml2 \
-    xz \
+	libtinyxml2-mavsdk \
+	picosha2-mavsdk \
+	xz \
+	xz-native \
 	curl \
 	jsoncpp \
 	grpc \
-	openssl \
+	libmavlike \
+	mavlink \
 	protobuf-native \
 	python3-native \
 	python3-jinja2-native \
@@ -32,6 +35,12 @@ DEPENDS = " \
 
 inherit cmake pkgconfig systemd
 
-EXTRA_OECMAKE += "-DBUILD_TESTING=OFF "
+EXTRA_OECMAKE += " \
+    -DBUILD_TESTING=OFF \
+    -DSUPERBUILD=OFF \
+    -DMAVLINK_DIALECT=ardupilotmega \
+    -DCMAKE_CROSSCOMPILING=0 \
+    -DDEPS_INSTALL_PATH:STRING=${RECIPE_SYSROOT}/usr \
+"
 
 do_configure[network] = "1"

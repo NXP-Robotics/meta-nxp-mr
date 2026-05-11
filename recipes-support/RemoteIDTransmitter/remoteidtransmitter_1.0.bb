@@ -1,12 +1,12 @@
 SUMMARY = "RemoteIDtransmitter"
 
-LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://README.md;md5=ff65426c72468afec489f9abea202565"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=7096806b67525ff0c38b2b02532e31f7"
 
 
 SRCBRANCH = "main"
 
-SRCREV = "3d02abe7d420037ba11fa1d04b17e07d52686d9d"
+SRCREV = "871cd481bf2b64f1221ff0c11f689b809371afc3"
 
 SRC_URI = "gitsm://github.com/ARK-Electronics/RemoteIDTransmitter.git;protocol=https;branch=${SRCBRANCH} \
            "

@@ -1,0 +1,41 @@
+From 59691a3f2a1696c160b020867be54b800d860206 Mon Sep 17 00:00:00 2001
+From: Piotr Betlej <piotr.betlej@googlemail.com>
+Date: Mon, 27 Oct 2025 16:14:15 +0100
+Subject: [PATCH] Pymavlink as yocto dependency
+
+Message_definitions installed into include directory
+---
+ CMakeLists.txt | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8aadc9af..9dd09193 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -28,8 +28,6 @@ message(STATUS "MAVLink version: ${MAVLINK_VERSION}")
+ set(EXAMPLE_HEADER ${CMAKE_CURRENT_BINARY_DIR}/include/mavlink/${MAVLINK_DIALECT}/mavlink.h)
+ 
+ add_custom_command(OUTPUT ${EXAMPLE_HEADER}
+-    COMMAND ${Python_EXECUTABLE}
+-        -m pip install -r pymavlink/requirements.txt --upgrade -t ${CMAKE_CURRENT_BINARY_DIR}/pip-dependencies/
+         COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/pip-dependencies/" ${Python_EXECUTABLE}
+         -m pymavlink.tools.mavgen
+         --lang=C
+@@ -68,6 +66,14 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/mavlink"
+     FILES_MATCHING PATTERN "*.h"
+ )
+ 
++install(FILES
++    "${CMAKE_CURRENT_SOURCE_DIR}/message_definitions/v1.0/minimal.xml"
++    "${CMAKE_CURRENT_SOURCE_DIR}/message_definitions/v1.0/standard.xml"
++    "${CMAKE_CURRENT_SOURCE_DIR}/message_definitions/v1.0/common.xml"
++    "${CMAKE_CURRENT_SOURCE_DIR}/message_definitions/v1.0/ardupilotmega.xml"
++    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/mavlink/message_definitions/v1.0"
++)
++
+ install(EXPORT MAVLinkTargets
+     FILE MAVLinkTargets.cmake
+     NAMESPACE MAVLink::
+-- 
+2.25.1
+
