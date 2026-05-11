@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += " \
+SRC_URI:append = " \
          file://cpufreq.cfg \
          file://usbserial.cfg \
          file://fs_sec.cfg \
