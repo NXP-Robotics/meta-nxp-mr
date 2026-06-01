@@ -97,6 +97,7 @@ IMAGE_INSTALL:append:imx95-navq = " \
 	mali-imx-opencl-icd-dev \
 	patrace \
 	${G2D_SAMPLES} \
+	reboot-to-fastboot \
 	"
 
 # Don’t let pseudo track the transient lock file
