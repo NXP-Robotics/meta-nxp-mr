@@ -229,4 +229,5 @@ APTGET_EXTRA_PACKAGES += " \
     python3-spidev \
     python3-libgpiod \
     systemd-resolved systemd-timesyncd polkitd libpaper1 \
+    picocom pciutils libubootenv-tool \
 "
