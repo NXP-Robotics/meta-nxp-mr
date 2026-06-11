@@ -1,0 +1,25 @@
+From d541e7dbb3ef46baf3f2e0ef62aca398789e54d8 Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Fri, 12 Jun 2026 12:24:02 +0200
+Subject: [PATCH 06/22] pseudo: path search was not shell compliant
+
+---
+ pseudo_client.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pseudo_client.c b/pseudo_client.c
+index 9c32a15..1b669fa 100644
+--- a/pseudo_client.c
++++ b/pseudo_client.c
+@@ -2281,7 +2281,7 @@ pseudo_exec_path(const char *filename, int search_path) {
+ 		return candidate;
+ 	}
+ 
+-	if (!search_path || !path_segs) {
++	if (!search_path || !path_segs || strchr(filename, '/')) {
+ 		candidate = pseudo_fix_path(pseudo_cwd, filename, 0, pseudo_cwd_len, NULL, 0);
+ 		/* executable or not, it's the only thing we can try */
+ 		pseudo_magic();
+-- 
+2.34.1
+

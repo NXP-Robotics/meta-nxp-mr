@@ -1,20 +1,20 @@
-From 413cc734d37876361137b7235a2636b1f2a41e55 Mon Sep 17 00:00:00 2001
-From: Heinz Wrobel <Heinz.Wrobel@nxp.com>
-Date: Tue, 8 Nov 2022 11:29:03 +0100
-Subject: [PATCH 02/20] pseudo: The stat[v]fs() functions were not wrapped
+From e347aa07342f97c6c241ec401b310a5a0773fb8a Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Fri, 12 Jun 2026 12:23:39 +0200
+Subject: [PATCH 02/22] pseudo: The stat[v]fs() functions were not wrapped
  properly
 
-Signed-off-by: Heinz Wrobel <Heinz.Wrobel@nxp.com>
 ---
- ports/linux/wrapfuncs.in | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ ports/linux/wrapfuncs.in | 6 ++++++
+ pseudo_wrappers.c        | 2 ++
+ 2 files changed, 8 insertions(+)
 
 diff --git a/ports/linux/wrapfuncs.in b/ports/linux/wrapfuncs.in
-index 97b16c2..241cf52 100644
+index 234a13c..c9e7ab0 100644
 --- a/ports/linux/wrapfuncs.in
 +++ b/ports/linux/wrapfuncs.in
-@@ -22,12 +22,20 @@ int openat64(int dirfd, const char *path, int flags, ...{mode_t mode}); /* flags
- int __openat64_2(int dirfd, const char *path, int flags); /* flags=flags&O_NOFOLLOW, noignore_path=1 */
+@@ -22,10 +22,16 @@ int openat64(int dirfd, const char *path, int flags, ...{mode_t mode}); /* flags
+ int __openat64_2(int dirfd, const char *path, int flags); /* flags=((flags&O_NOFOLLOW)||((flags&(O_CREAT|O_EXCL))==(O_CREAT|O_EXCL))), noignore_path=1 */
  int creat64(const char *path, mode_t mode);
  int stat(const char *path, struct stat *buf); /* real_func=pseudo_stat */
 +int statfs(const char *path, struct statfs *buf);
@@ -29,11 +29,20 @@ index 97b16c2..241cf52 100644
 +int statvfs64(const char *path, struct statvfs64 *buf);
  int lstat64(const char *path, struct stat64 *buf); /* real_func=pseudo_lstat64, flags=AT_SYMLINK_NOFOLLOW */
  int fstat64(int fd, struct stat64 *buf); /* real_func=pseudo_fstat64 */
-+int fstatfs64(int fd, struct statfs64 *buf);
-+int fstatvfs64(int fd, struct statvfs64 *buf);
  int fstatat64(int dirfd, const char *path, struct stat64 *buf, int flags);
- int __xstat64(int ver, const char *path, struct stat64 *buf);
- int __lxstat64(int ver, const char *path, struct stat64 *buf); /* flags=AT_SYMLINK_NOFOLLOW */
+diff --git a/pseudo_wrappers.c b/pseudo_wrappers.c
+index 9ae1200..9f0be9d 100644
+--- a/pseudo_wrappers.c
++++ b/pseudo_wrappers.c
+@@ -22,6 +22,8 @@
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include <sys/stat.h>
++#include <sys/statfs.h>
++#include <sys/statvfs.h>
+ #include <sys/time.h>
+ #include <sys/wait.h>
+ #include <dlfcn.h>
 -- 
 2.34.1
 

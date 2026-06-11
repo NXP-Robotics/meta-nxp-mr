@@ -54,3 +54,17 @@ do_configure:append:arm () {
 	echo "CFLAGS-abort.c = -fasynchronous-unwind-tables" >> ${B}/configparms
 	echo "CFLAGS-raise.c = -fasynchronous-unwind-tables" >> ${B}/configparms
 }
+
+# Strip debug sections from installed crt startup objects.
+# glibc compiles csu/ files from ${S}/csu as the working directory, so
+# DW_AT_comp_dir = ${S}/csu = ${TMPDIR}/... regardless of -ffile-prefix-map.
+# The installed .o files (crt1.o, crti.o, crtn.o etc.) get linked into every
+# binary on the system. Without stripping their debug sections, TMPDIR would
+# be embedded in every binary's debug info, causing widespread "buildpaths"
+# QA failures across all packages.
+do_install:append() {
+	for f in ${D}${libdir}/crt*.o ${D}${libdir}/gcrt1.o ${D}${libdir}/Scrt1.o \
+	          ${D}${libdir}/rcrt1.o ${D}${libdir}/grcrt1.o; do
+		[ -f "$f" ] && ${OBJCOPY} --strip-debug "$f" || true
+	done
+}

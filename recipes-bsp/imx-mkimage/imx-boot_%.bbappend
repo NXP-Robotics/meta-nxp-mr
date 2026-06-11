@@ -11,5 +11,5 @@ do_configure[mcdepends] += "mc:imx95-navqdesktop:imx95-navq-m7:zephyr-mcuboot:do
 
 do_configure:append () {
 	cp ${TOPDIR}/tmp/m7_mcuboot_image.bin ${S}/iMX95/m7_mcuboot_image.bin
-	sed -i 's/m7_image.bin/m7_mcuboot_image.bin/' ${WORKDIR}/git/iMX95/soc.mak
+	sed -i 's/m7_image.bin/m7_mcuboot_image.bin/' ${S}/iMX95/soc.mak
 }

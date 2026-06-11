@@ -1,0 +1,26 @@
+From 22ef83ae5c4ab5fe759e2abab832d642a5aac955 Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Fri, 12 Jun 2026 12:23:17 +0200
+Subject: [PATCH 01/22] pseudo: Enabled utimensat/ftimens (wrapfuncs.in only;
+ array support already upstream)
+
+---
+ ports/unix/wrapfuncs.in | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ports/unix/wrapfuncs.in b/ports/unix/wrapfuncs.in
+index 7724fc7..4d7a887 100644
+--- a/ports/unix/wrapfuncs.in
++++ b/ports/unix/wrapfuncs.in
+@@ -29,6 +29,8 @@ char *tmpnam(char *s);
+ int truncate(const char *path, off_t length);
+ int utime(const char *path, const struct utimbuf *buf);
+ int utimes(const char *path, const struct timeval *times);
++int utimensat(int dirfd, const char *path, const struct timespec times[2], int flags);
++int futimens(int fd, const struct timespec times[2]);
+ # needed because libc stdio does horrible things with inline asm syscalls
+ FILE *fopen(const char *path, const char *mode); /* noignore_path=1 */
+ int fclose(FILE *fp);  /* noignore_path=1 */
+-- 
+2.34.1
+

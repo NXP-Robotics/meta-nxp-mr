@@ -1,5 +1,5 @@
 
-SRCBRANCH = "imx95-navq-lf-6.12.y"
+SRCBRANCH = "imx95-navq-lf-6.18.y-26Q1"
 IMX_SYSTEM_MANAGER_SRC = "git://git@github.com/NXP-Robotics/imx-sm.git;protocol=https;branch=${SRCBRANCH}"
 SRCREV = "${AUTOREV}"
 

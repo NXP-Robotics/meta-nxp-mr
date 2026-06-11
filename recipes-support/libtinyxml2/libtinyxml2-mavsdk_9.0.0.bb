@@ -9,8 +9,6 @@ SRC_URI = "git://github.com/leethomason/tinyxml2.git;branch=master;protocol=http
 
 SRCREV = "1dee28e51f9175a31955b9791c74c430fe13dc82"
 
-S = "${WORKDIR}/git"
-
 inherit cmake
 
 BBCLASSEXTEND = "native"

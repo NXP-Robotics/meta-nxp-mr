@@ -58,7 +58,7 @@ CVE_STATUS[CVE-2023-36632] = "disputed: Not an issue, in fact expected behaviour
 
 PYTHON_MAJMIN = "3.12"
 
-S = "${WORKDIR}/Python-${PV}"
+S = "${UNPACKDIR}/Python-${PV}"
 
 BBCLASSEXTEND = "native nativesdk"
 
@@ -80,7 +80,7 @@ EXTRA_OECONF:append:class-native = " --bindir=${bindir}/${PN}"
 EXTRA_OECONF:append:class-target = " --with-build-python=nativepython3"
 EXTRA_OECONF:append:class-nativesdk = " --with-build-python=nativepython3"
 
-export CROSSPYTHONPATH="${STAGING_LIBDIR_NATIVE}/python${PYTHON_MAJMIN}/lib-dynload/"
+export CROSSPYTHONPATH = "${STAGING_LIBDIR_NATIVE}/python${PYTHON_MAJMIN}/lib-dynload/"
 
 EXTRANATIVEPATH += "python3-native"
 
@@ -121,7 +121,7 @@ ${@bb.utils.contains('PACKAGECONFIG', 'tk', '', '_tkinter', d)}
 EOF
 }
 
-CPPFLAGS:append = " -I${STAGING_INCDIR}/ncursesw -I${STAGING_INCDIR}/uuid"
+CPPFLAGS += "-I${STAGING_INCDIR}/ncursesw -I${STAGING_INCDIR}/uuid"
 
 # COMPILEALL_OPTS= ensures that .pyc are not compiled in parallel
 # This was found to lock up builds, break reproducibility, and produce strange file ownership
@@ -185,14 +185,14 @@ do_install:append:class-native() {
         # when they're only used for python called with -O or -OO.
         #find ${D} -name *opt-*.pyc -delete
         # Remove all pyc files. There are a ton of them and it is probably faster to let
-        # python create the ones it wants at runtime rather than manage in the sstate 
+        # python create the ones it wants at runtime rather than manage in the sstate
         # tarballs and sysroot creation.
         find ${D} -name *.pyc -delete
 
         # Nothing should be looking into ${B} for python3-native
         sed -i -e 's:${B}:/build/path/unavailable/:g' \
                 ${D}/${libdir}/python${PYTHON_MAJMIN}/config-${PYTHON_MAJMIN}${PYTHON_ABI}*/Makefile
-        
+
         # disable the lookup in user's site-packages globally
         sed -i 's#ENABLE_USER_SITE = None#ENABLE_USER_SITE = False#' ${D}${libdir}/python${PYTHON_MAJMIN}/site.py
 
@@ -304,7 +304,7 @@ py_package_preprocess () {
         cd -
 
         mv ${PKGD}/${bindir}/python${PYTHON_MAJMIN}-config ${PKGD}/${bindir}/python${PYTHON_MAJMIN}-config-${MULTILIB_SUFFIX}
-        
+
         #Remove the unneeded copy of target sysconfig data
         rm -rf ${PKGD}/${libdir}/python-sysconfigdata
 }
@@ -433,17 +433,18 @@ FILES:libpython3 = "${libdir}/libpython*.so.*"
 FILES:libpython3-staticdev += "${libdir}/python${PYTHON_MAJMIN}/config-${PYTHON_MAJMIN}-*/libpython${PYTHON_MAJMIN}.a"
 INSANE_SKIP:${PN}-dev += "dev-elf"
 INSANE_SKIP:${PN}-ptest = "dev-deps"
+INSANE_SKIP:${PN}-dbg += "buildpaths"
 
 # catch all the rest (unsorted)
 PACKAGES += "${PN}-misc"
 RDEPENDS:${PN}-misc += "\
-  ${PN}-audio \
-  ${PN}-codecs \
-  ${PN}-core \
-  ${PN}-email \
-  ${PN}-numbers \
-  ${PN}-pickle \
-  ${PN}-pydoc \
+    ${PN}-audio \
+    ${PN}-codecs \
+    ${PN}-core \
+    ${PN}-email \
+    ${PN}-numbers \
+    ${PN}-pickle \
+    ${PN}-pydoc \
 "
 RDEPENDS:${PN}-modules:append:class-target = " ${MLPREFIX}python3-misc"
 RDEPENDS:${PN}-modules:append:class-nativesdk = " ${MLPREFIX}python3-misc"

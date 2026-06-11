@@ -155,6 +155,21 @@ SRC_URI_PATCHES ?= "\
     file://0001-boards-add-mr_navq95a-and-mr_navq95b-overlays.patch;patchdir=bootloader/mcuboot \
 "
 
+# Whinlatter OE-core sets BB_GIT_DEFAULT_DESTSUFFIX = "${BP}", so S defaults to
+# ${UNPACKDIR}/${BP}. But all our SRC_URI entries use explicit destsuffix=git/X,
+# placing the repos under ${UNPACKDIR}/git/. Create a symlink before patching so
+# that S (= ${UNPACKDIR}/${BP}) resolves to the git checkout root and patchdir
+# values like 'zephyr' and 'bootloader/mcuboot' can be found.
+python do_patch:prepend() {
+    import os
+    unpackdir = d.getVar("UNPACKDIR")
+    bp = d.getVar("BP")
+    dst = os.path.join(unpackdir, bp)
+    src = os.path.join(unpackdir, "git")
+    if os.path.isdir(src) and not os.path.lexists(dst):
+        os.symlink(src, dst)
+}
+
 SRC_URI = "\
     ${SRC_URI_ZEPHYR};branch=${ZEPHYR_BRANCH};name=default;destsuffix=git/zephyr \
     ${SRC_URI_ZEPHYR_ACPICA};name=acpica;nobranch=1;destsuffix=git/modules/lib/acpica \

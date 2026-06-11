@@ -11,8 +11,6 @@ SRCREV = "d28d6b07eeefa80c6e562ab783ef0eebfe8d952e"
 SRC_URI = "gitsm://github.com/mavlink/MAVSDK.git;protocol=https;branch=${SRCBRANCH} \
            "
 
-S = "${WORKDIR}/git"
-
 DEPENDS = " \
 	libtinyxml2-mavsdk \
 	picosha2-mavsdk \

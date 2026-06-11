@@ -32,7 +32,7 @@ inherit meson gettext gtk-doc pkgconfig ptest-gnome upstream-version-is-even bas
 
 GTKDOC_MESON_OPTION = "gtk_doc"
 
-S = "${WORKDIR}/glib-${PV}"
+S = "${UNPACKDIR}/glib-${PV}"
 
 PACKAGECONFIG ??= "libmount \
                    ${@bb.utils.contains('PTEST_ENABLED', '1', 'tests', '', d)}"

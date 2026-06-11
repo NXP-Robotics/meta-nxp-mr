@@ -1,0 +1,27 @@
+From: meta-nxp-mr <nxp@example.com>
+Date: Mon, 16 Jun 2025 00:00:00 +0000
+Subject: [PATCH] common: add sys/stat.h include for GCC15 compatibility
+
+GCC15 (paired with glibc 2.39) no longer allows implicit availability of
+stat() via transitive includes. Add an explicit #include <sys/stat.h> to
+gst_pipeline_imx.cpp which uses struct stat and the stat() syscall wrapper.
+
+Upstream-Status: Pending
+
+Signed-off-by: meta-nxp-mr <nxp@example.com>
+---
+ common/cpp/src/gst_pipeline_imx.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/common/cpp/src/gst_pipeline_imx.cpp b/common/cpp/src/gst_pipeline_imx.cpp
+index 1111111..2222222 100644
+--- a/common/cpp/src/gst_pipeline_imx.cpp
++++ b/common/cpp/src/gst_pipeline_imx.cpp
+@@ -6,6 +6,7 @@
+ #include "gst_pipeline_imx.hpp"
+ #include <cmath>
+ #include <regex>
++#include <sys/stat.h>
+ 
+ 
+ // Default font size is 15 pixels for a width of 640

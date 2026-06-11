@@ -64,6 +64,7 @@ FILES:localedef = "${bindir}/localedef"
 FILES:${LOCALEBASEPN}-locale-alias = "${datadir}/locale/locale.alias"
 
 LOCALETREESRC = "${COMPONENTS_DIR}/${PACKAGE_ARCH}/glibc-stash-locale"
+PSEUDO_INCLUDE_PATHS .= ",${WORKDIR}/locale-tree"
 
 copy_locale_files() {
 	local dir=$1 mode=$2
@@ -96,3 +97,5 @@ BBCLASSEXTEND = "nativesdk"
 
 # Don't scan for CVEs as glibc will be scanned
 CVE_PRODUCT = ""
+
+INSANE_SKIP:glibc-locale-dbg += "buildpaths"

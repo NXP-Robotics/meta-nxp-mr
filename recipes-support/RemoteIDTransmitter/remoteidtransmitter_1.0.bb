@@ -11,9 +11,6 @@ SRCREV = "871cd481bf2b64f1221ff0c11f689b809371afc3"
 SRC_URI = "gitsm://github.com/ARK-Electronics/RemoteIDTransmitter.git;protocol=https;branch=${SRCBRANCH} \
            "
 
-S = "${WORKDIR}/git"
-
-
 DEPENDS = " \
     mavsdk \
     bluez5 \

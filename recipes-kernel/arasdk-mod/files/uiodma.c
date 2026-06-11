@@ -1,25 +1,30 @@
 /*
- * Copyright (C) 2021 Amazon, Inc or one of its affiliates
- */
-
-/*
- * Copyright (c) 2021-25, Kinara, Inc.
- */
-
-// SPDX-License-Identifier: GPL-2.0
-
-/* This driver purposely does not declare any device IDs so it has to be
- * manually bound:
+ * UIO DMA Driver with Cache Management for ARM Architectures
  *
- * echo "1e58 0002" > /sys/bus/pci/drivers/uiodma/new_id
+ * Copyright (C) 2021 Amazon, Inc or one of its affiliates
+ * Copyright (C) 2021-2025 Kinara, Inc.
+ * Copyright 2025-2026 NXP
+ *
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This driver provides DMA buffer management with non-coherent DMA mapping
+ * for UIO (Userspace I/O) devices on PCI bus.
+ *
+ * Note: This driver does not declare any device IDs and must be manually bound:
+ *   echo "1e58 0002" > /sys/bus/pci/drivers/uiodma/new_id
  */
+
+#include <linux/version.h>
 #include <linux/device.h>
-#include <linux/dma-direct.h>
-#include <linux/eventfd.h>
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/sysfs.h>
-#include <linux/version.h>
+#include <linux/dma-direct.h>
+#include <linux/eventfd.h>
 
 #define DEFAULT_UIODMA_SIZE (4 * SZ_1M)
 
@@ -40,7 +45,7 @@ static ssize_t uiodma_dmaaddr_show(struct device *dev,
 DEVICE_ATTR_RO(uiodma_dmaaddr);
 
 static int uiodma_mmap(struct file *file, struct kobject *kobj,
-                       struct bin_attribute *attr, struct vm_area_struct *vma) {
+                       const struct bin_attribute *attr, struct vm_area_struct *vma) {
   struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
   struct uiodma *uiodma = pci_get_drvdata(pdev);
   phys_addr_t offset = (virt_to_phys(uiodma->hostptr)) >> PAGE_SHIFT;
@@ -48,24 +53,19 @@ static int uiodma_mmap(struct file *file, struct kobject *kobj,
   size_t size = vma->vm_end - vma->vm_start;
   phys_addr_t phy_of_host_ptr = virt_to_phys(uiodma->hostptr);
   phys_addr_t phy_of_dma = dma_to_phys(&pdev->dev, uiodma->dmaaddr);
-  // dev_info(&pdev->dev,"host_addr=%llx, dma_addr=%llx, vm->vm_pgoff=%llx
-  // phy_of_host_ptr=%llx
-  // phys_of_dma=%llx",uiodma->hostptr,uiodma->dmaaddr,vma->vm_pgoff,phy_of_host_ptr,phy_of_dma);
-  int ret = remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, size,
-                            vma->vm_page_prot);
-  // dev_info(&pdev->dev, "remap_pfn_range=%d offset=%llx size=%llx\n", ret,
-  // offset, size);
+  // dev_info(&pdev->dev,"host_addr=%llx, dma_addr=%llx, vm->vm_pgoff=%llx phy_of_host_ptr=%llx phys_of_dma=%llx",uiodma->hostptr,uiodma->dmaaddr,vma->vm_pgoff,phy_of_host_ptr,phy_of_dma);
+  int ret = remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, size, vma->vm_page_prot);
+  // dev_info(&pdev->dev, "remap_pfn_range=%d offset=%llx size=%llx\n", ret, offset, size);
   return ret;
 }
 
 static const struct attribute *uiodma_attrs[] = {
-    &dev_attr_uiodma_dmaaddr.attr,
-    NULL,
+  &dev_attr_uiodma_dmaaddr.attr,
+  NULL,
 };
 
-ssize_t uiodma_read(struct file *file, struct kobject *kobj,
-                    struct bin_attribute *attr, char *buf, loff_t offset,
-                    size_t size) {
+ssize_t uiodma_read(struct file *file, struct kobject *kobj, const struct bin_attribute *attr,
+                    char *buf, loff_t offset, size_t size) {
   struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
   struct uiodma *uiodma = pci_get_drvdata(pdev);
   // setting cache management flag
@@ -74,9 +74,8 @@ ssize_t uiodma_read(struct file *file, struct kobject *kobj,
   return size;
 }
 
-ssize_t uiodma_write(struct file *file, struct kobject *kobj,
-                     struct bin_attribute *attr, char *buf, loff_t offset,
-                     size_t size) {
+ssize_t uiodma_write(struct file *file, struct kobject *kobj, const struct bin_attribute *attr,
+                     char *buf, loff_t offset, size_t size) {
   struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
   struct uiodma *uiodma = pci_get_drvdata(pdev);
   int eventfd_fd = *((int *)buf);
@@ -85,15 +84,14 @@ ssize_t uiodma_write(struct file *file, struct kobject *kobj,
 }
 
 static const struct bin_attribute uiodma_bin_attr = {
-    .attr =
-        {
-            .name = "uiodma",
-            .mode = 0600,
-        },
-    .size = DEFAULT_UIODMA_SIZE,
-    .mmap = uiodma_mmap,
-    .read = uiodma_read,
-    .write = uiodma_write};
+  .attr = {
+    .name = "uiodma",
+    .mode = 0600,
+  },
+  .size = DEFAULT_UIODMA_SIZE,
+  .mmap = uiodma_mmap,
+  .read = uiodma_read,
+  .write = uiodma_write};
 
 // TODO: sriduth - make it proper, some logs etc..
 static irqreturn_t uiodma_btm_irq_handler(int irq, void *pdata) {
@@ -136,7 +134,8 @@ static int uiodma_probe(struct pci_dev *pdev, const struct pci_device_id *id) {
   dev_info(&pdev->dev, "uiodma driver with non coherent dma mapping\n");
   ret = pci_enable_device(pdev);
   if (ret) {
-    dev_err(&pdev->dev, "Could not enable the PCI device: %d\n", ret);
+    dev_err(&pdev->dev, "Could not enable the PCI device: %d\n",
+            ret);
     return ret;
   }
 
@@ -149,13 +148,16 @@ static int uiodma_probe(struct pci_dev *pdev, const struct pci_device_id *id) {
 
   uiodma = kzalloc(sizeof(*uiodma), GFP_KERNEL);
   if (!uiodma) {
+    pci_clear_master(pdev);
+    pci_free_irq_vectors(pdev);
     pci_disable_device(pdev);
     return -ENOMEM;
   }
 
-  ret = request_threaded_irq(pdev->irq, uiodma_top_irq_handler,
-                             uiodma_btm_irq_handler, IRQF_SHARED,
-                             "uiodma_efd_irq", uiodma);
+  ret = request_threaded_irq(pdev->irq,
+                             uiodma_top_irq_handler,
+                             uiodma_btm_irq_handler,
+                             IRQF_SHARED, "uiodma_efd_irq", uiodma);
 
   if (ret) {
     dev_err(&pdev->dev, "could not alloc irq=%d\n", ret);
@@ -165,29 +167,36 @@ static int uiodma_probe(struct pci_dev *pdev, const struct pci_device_id *id) {
   if (!uiodma->hostptr) {
     dev_err(&pdev->dev, "Couldn't allocate the DMA memory\n");
     kfree(uiodma);
+    pci_clear_master(pdev);
+    pci_free_irq_vectors(pdev);
     pci_disable_device(pdev);
     return -ENOMEM;
   }
   if (dma_set_mask(&pdev->dev, DMA_BIT_MASK(64))) {
-    pr_info("64 bit dma not supported ");
+    dev_info(&pdev->dev, "64 bit dma not supported ");
     if (dma_set_mask(&pdev->dev, DMA_BIT_MASK(32))) {
-      pr_info("32  bit dma not supported");
+      dev_info(&pdev->dev, "32  bit dma not supported");
     }
   }
 
-  uiodma->dmaaddr = dma_map_single(&pdev->dev, uiodma->hostptr,
-                                   DEFAULT_UIODMA_SIZE, DMA_BIDIRECTIONAL);
+  uiodma->dmaaddr = dma_map_single(&pdev->dev, uiodma->hostptr, DEFAULT_UIODMA_SIZE, DMA_BIDIRECTIONAL);
   ret = dma_mapping_error(&pdev->dev, uiodma->dmaaddr);
   if (ret) {
     dev_err(&pdev->dev, "Couldn't map the DMA memory error=%d\n", ret);
+    kfree(uiodma->hostptr);
     kfree(uiodma);
+    pci_clear_master(pdev);
+    pci_free_irq_vectors(pdev);
     pci_disable_device(pdev);
     return -ENOMEM;
   }
 
   if (!uiodma->dmaaddr) {
     dev_err(&pdev->dev, "Couldn't allocate the DMA memory\n");
+    kfree(uiodma->hostptr);
     kfree(uiodma);
+    pci_clear_master(pdev);
+    pci_free_irq_vectors(pdev);
     pci_disable_device(pdev);
     return -ENOMEM;
   }
@@ -210,18 +219,20 @@ static void uiodma_remove(struct pci_dev *pdev) {
   sysfs_remove_files(&pdev->dev.kobj, uiodma_attrs);
 
   sysfs_remove_bin_file(&pdev->dev.kobj, &uiodma_bin_attr);
-  dma_unmap_single(&pdev->dev, uiodma->dmaaddr, DEFAULT_UIODMA_SIZE,
-                   DMA_BIDIRECTIONAL);
+  dma_unmap_single(&pdev->dev, uiodma->dmaaddr, DEFAULT_UIODMA_SIZE, DMA_BIDIRECTIONAL);
   kfree(uiodma->hostptr);
   kfree(uiodma);
+  pci_clear_master(pdev);
+  pci_free_irq_vectors(pdev);
+  pci_set_drvdata(pdev, NULL);
   pci_disable_device(pdev);
 }
 
 static struct pci_driver uiodma_driver = {
-    .name = "uiodma",
-    .id_table = NULL,
-    .probe = uiodma_probe,
-    .remove = uiodma_remove,
+  .name = "uiodma",
+  .id_table = NULL,
+  .probe = uiodma_probe,
+  .remove = uiodma_remove,
 };
 
 module_pci_driver(uiodma_driver);

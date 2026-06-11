@@ -1,0 +1,27 @@
+From c15fb99c89233179f6936a7f13bb9a0b65ae0274 Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Fri, 12 Jun 2026 12:24:02 +0200
+Subject: [PATCH 16/22] pseudo: Diagnostic cleanup for utimensat()
+
+---
+ pseudo_client.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/pseudo_client.c b/pseudo_client.c
+index 593ffd8..4408eab 100644
+--- a/pseudo_client.c
++++ b/pseudo_client.c
+@@ -838,8 +838,9 @@ pseudo_root_path(const char *func, int line, int dirfd, const char *path, int le
+ 		pseudo_diag("couldn't allocate absolute path for '%s'.\n",
+ 			path ? path : "null");
+ 	}
+-	pseudo_debug(PDBGF_CHROOT, "root_path [%s, %d]: '%s' from '%s'\n",
++	pseudo_debug(PDBGF_CHROOT, "root_path [%s, %d]: dirfd %d, '%s' from '%s'\n",
+ 		func, line,
++		dirfd,
+ 		rc ? rc : "<nil>",
+ 		path ? path : "<nil>");
+ 	return rc;
+-- 
+2.34.1
+

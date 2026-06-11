@@ -9,7 +9,7 @@ PREFERRED_VERSION_ubuntu-base = "${UBUNTU_TARGET_VERSION}"
 
 # I am sure there are smarter ways to map the architecture. This works
 # initially. FIX
-UBUNTU_TARGET_ARCH="${@d.getVar('TRANSLATED_TARGET_ARCH', True).replace("aarch64", "arm64")}"
+UBUNTU_TARGET_ARCH = "${@d.getVar('TRANSLATED_TARGET_ARCH', True).replace("aarch64", "arm64")}"
 
 # Downconfigure Yocto environment to not pull in local things
 # We do not want any default post intercepts or special default
@@ -42,7 +42,7 @@ GLIBCVERSION = '${@ \
     , d)}'
 PREFERRED_VERSION_cross-localedef-native = "${GLIBCVERSION}"
 
-BINUVERSION="2.41"
+BINUVERSION = "2.41"
 
 # More recent Desktop versions work with symlinks for the base
 # directories. We can't refer to symlink based files

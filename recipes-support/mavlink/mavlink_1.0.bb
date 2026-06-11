@@ -13,8 +13,6 @@ SRC_URI = "gitsm://github.com/mavlink/mavlink.git;protocol=https;branch=${SRCBRA
 
 SRC_URI += "file://0001-Pymavlink-as-yocto-dependency.patch"
 
-S = "${WORKDIR}/git"
-
 DEPENDS = " \
     libxslt-native \
     libxml2-native \

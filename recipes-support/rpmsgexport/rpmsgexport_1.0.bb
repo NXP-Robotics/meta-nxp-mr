@@ -9,9 +9,9 @@ SRCREV = "e31568cba3a94f34b3192f7517a70a513b99b96a"
 
 SRC_URI = "git://git@github.com/NXP-Robotics/rpmsgexport.git;protocol=https;branch=${SRCBRANCH}"
 
-S = "${WORKDIR}/git"
-
 TARGET_CC_ARCH += "${LDFLAGS}"
+
+INSANE_SKIP:${PN}-dbg += "buildpaths"
 
 do_install() {
 	oe_runmake

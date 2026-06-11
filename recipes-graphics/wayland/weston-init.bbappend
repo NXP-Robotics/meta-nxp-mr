@@ -1,4 +1,23 @@
 
+# In Ubuntu overlay images, the RPM preinst groupadd/useradd create/delete
+# /etc/.pwd.lock whose inode gets reused by the next RPM-installed file,
+# triggering a pseudo inode-reuse path-mismatch abort during do_rootfs.
+# Override pkg_preinst with an early exit so the useradd-class-appended
+# code is never reached during rootfs construction.
+# User/group creation is deferred to first-boot via pkg_postinst_ontarget.
+pkg_preinst:${PN}() {
+#!/bin/sh
+# weston user and wayland/render/seat groups created at first boot (see postinst_ontarget)
+exit 0
+}
+
+pkg_postinst_ontarget:${PN}() {
+    groupadd -r wayland  2>/dev/null || true
+    groupadd -r render   2>/dev/null || true
+    groupadd -r seat     2>/dev/null || true
+    useradd --home ${WESTON_USER_HOME} --shell /bin/sh --user-group \
+        -G video,input,render,seat,wayland ${WESTON_USER} 2>/dev/null || true
+}
 
 # Append to the do_install task to tweak weston.ini after it's installed into ${D}
 do_install:append() {
