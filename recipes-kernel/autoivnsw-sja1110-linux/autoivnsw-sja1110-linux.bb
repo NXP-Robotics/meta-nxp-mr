@@ -10,8 +10,6 @@ SRC_URI += "file://Makefile"
 
 SRCREV = "${AUTOREV}"
 
-S = "${WORKDIR}/git"
-
 RPROVIDES_${PN} += "kernel-module-sja1110"
 
 do_configure:prepend() {

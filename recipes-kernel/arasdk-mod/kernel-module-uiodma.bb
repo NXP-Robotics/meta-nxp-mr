@@ -13,7 +13,7 @@ SRC_URI = "\
 "
 
 # REQUIRED FOR WALNASCAR
-S = "${WORKDIR}/${BPN}"
+S = "${UNPACKDIR}/${BPN}"
 
 DEPENDS += "virtual/kernel"
 

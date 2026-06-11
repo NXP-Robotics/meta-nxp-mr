@@ -1,0 +1,15 @@
+diff --git a/Kconfiglib/kconfiglib.py b/Kconfiglib/kconfiglib.py
+index 36500c2..deadbeef 100644
+--- a/Kconfiglib/kconfiglib.py
++++ b/Kconfiglib/kconfiglib.py
+@@ -3800,6 +3800,11 @@ class Kconfig(object):
+             elif t0 == "visible":
+                 self._parse_visible(node)
+ 
++            # Linux >=6.18: ignore "transitional" attribute
++            # (backwards compatibility with older Kconfiglib)
++            elif t0 == "transitional":
++                pass
++
+             else:
+                 self._parse_error("unknown property '{}'".format(t0))

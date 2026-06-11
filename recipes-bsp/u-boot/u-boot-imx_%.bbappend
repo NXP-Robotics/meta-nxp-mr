@@ -1,7 +1,7 @@
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRCBRANCH = "imx95-navq-lf-6.12.y"
+SRCBRANCH = "imx95-navq-lf-6.18.y"
 UBOOT_SRC = "git://git@github.com/NXP-Robotics/uboot-imx.git;protocol=https;branch=${SRCBRANCH}"
 SRCREV = "${AUTOREV}"
 

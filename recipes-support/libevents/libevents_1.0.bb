@@ -11,7 +11,7 @@ SRCREV = "7c1720749dfe555ec2e71d5f9f753e6ac1244e1c"
 SRC_URI = "gitsm://github.com/mavlink/libevents.git;protocol=https;branch=${SRCBRANCH} \
            "
 
-S = "${WORKDIR}/git/libs/cpp"
+S = "${UNPACKDIR}/git/libs/cpp"
 
 DEPENDS = " \
     libxslt-native \

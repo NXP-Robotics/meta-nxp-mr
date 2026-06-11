@@ -14,8 +14,6 @@ SRC_URI = "gitsm://github.com/mavlink-router/mavlink-router.git;protocol=https;b
            file://main.conf \
            "
 
-S = "${WORKDIR}/git"
-
 SYSTEMD_SERVICE:${PN} = "mavlink-router.service"
 
 do_install:append() {

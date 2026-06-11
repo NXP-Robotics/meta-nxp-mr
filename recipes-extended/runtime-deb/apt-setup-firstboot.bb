@@ -16,8 +16,7 @@ UBUNTU_PACKAGE_NAME = "libopengl0 openssh-server libwrap0 \
 UBUNTU_ARCH = "arm64"
 UBUNTU_RELEASE = "noble"
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}/sources"
 
 WORKDIR_DOWNLOAD = "${WORKDIR}/downloads"
 

@@ -8,7 +8,7 @@ SRC_URI = "git://github.com/julianoes/PicoSHA2;protocol=https;branch=cmake-insta
 PV = "1.0+git"
 SRCREV = "1bf940d8a03bb752604fbb366d47b97b50b9e6ce"
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 inherit cmake
 

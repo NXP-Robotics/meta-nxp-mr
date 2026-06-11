@@ -13,7 +13,6 @@ inherit cargo
 # SRC_URI += "crate://crates.io/rpmsgfs-server/0.1.0"
 SRC_URI += "git://git@github.com/NXP-Robotics/rpmsgfs-server.git;protocol=https;nobranch=1;branch=walnascar"
 SRCREV = "${AUTOREV}"
-S = "${WORKDIR}/git"
 CARGO_SRC_DIR = ""
 PV:append = ".AUTOINC+9f3b2ff5e5"
 

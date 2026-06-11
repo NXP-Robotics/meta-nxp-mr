@@ -6,7 +6,7 @@ inherit nativeaptinstall
 
 APTGET_CHROOT_DIR = "${D}"
 
-S = "${WORKDIR}/rootfs"
+S = "${UNPACKDIR}/rootfs"
 B = "${S}"
 
 ROOTFS="ubuntu-base-${UBUNTU_TARGET_VERSION}-base-${UBUNTU_TARGET_ARCH}.tar.gz"
