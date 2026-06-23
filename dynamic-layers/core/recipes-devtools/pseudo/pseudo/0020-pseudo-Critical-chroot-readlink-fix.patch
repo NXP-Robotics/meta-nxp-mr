@@ -1,0 +1,51 @@
+From 9009645aea9a1665a780bab9da80029c8a02684d Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Fri, 12 Jun 2026 12:24:40 +0200
+Subject: [PATCH 20/22] pseudo: Critical chroot readlink fix
+
+---
+ pseudo_util.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/pseudo_util.c b/pseudo_util.c
+index 6dc42f6..4d4c7ed 100644
+--- a/pseudo_util.c
++++ b/pseudo_util.c
+@@ -692,8 +692,9 @@ pseudo_append_element(char *newpath, char *root, size_t allocated, char **pcurre
+ 			char linkbuf[pseudo_path_max() + 1];
+ 			ssize_t linklen;
+ 			int retval;
++			readlinkptr_t realreadlinkp = (readlinkp) ? readlinkp : readlink;
+ 
+-			linklen = (*readlinkp)(newpath, linkbuf, pseudo_path_max());
++			linklen = (*realreadlinkp)(newpath, linkbuf, pseudo_path_max());
+ 			if (linklen == -1) {
+ 				pseudo_debug(PDBGF_PATH, "uh-oh!  '%s' seems to be a symlink, but I can't read it.  Ignoring.\n", newpath);
+ 				*pcurrent = current;
+@@ -703,7 +704,13 @@ pseudo_append_element(char *newpath, char *root, size_t allocated, char **pcurre
+ 			linkbuf[linklen] = '\0';
+ 			/* absolute symlink means go back to root */
+ 			if (*linkbuf == '/') {
+-				current = root;
++				// We don't really go back to root.
++				// If we work with chroot enabled
++				// readlink functions, then we replace
++				// the full path because we know that
++				// the enabled functions return the full
++				// host path.
++				current = (readlinkp) ? newpath : root;
+ 			} else {
+ 				/* point back at the end of the previous path... */
+ 				current -= (elen + 1);
+@@ -810,8 +817,6 @@ pseudo_fix_path(const char *base, const char *path, size_t rootlen, size_t basel
+ 	char *effective_root;
+ 	int trailing_slash = 0;
+ 	
+-	if (!readlinkp)
+-		readlinkp = readlink;
+ 	if (!path) {
+ 		pseudo_diag("can't fix empty path.\n");
+ 		return 0;
+-- 
+2.34.1
+

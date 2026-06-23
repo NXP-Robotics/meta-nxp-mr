@@ -433,6 +433,7 @@ FILES:libpython3 = "${libdir}/libpython*.so.*"
 FILES:libpython3-staticdev += "${libdir}/python${PYTHON_MAJMIN}/config-${PYTHON_MAJMIN}-*/libpython${PYTHON_MAJMIN}.a"
 INSANE_SKIP:${PN}-dev += "dev-elf"
 INSANE_SKIP:${PN}-ptest = "dev-deps"
+INSANE_SKIP:${PN}-dbg += "buildpaths"
 
 # catch all the rest (unsorted)
 PACKAGES += "${PN}-misc"

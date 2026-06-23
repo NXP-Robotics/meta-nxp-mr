@@ -1,0 +1,41 @@
+From fa345fa7675931fc7512f8eb48c75f3a08eb26b8 Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Fri, 12 Jun 2026 12:24:02 +0200
+Subject: [PATCH 13/22] pseudo: Treat chroot exceptions properly for std paths.
+
+---
+ pseudo_client.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/pseudo_client.c b/pseudo_client.c
+index 7df0104..f5de60a 100644
+--- a/pseudo_client.c
++++ b/pseudo_client.c
+@@ -1592,10 +1592,20 @@ base_path(int dirfd, const char *path, int leave_last) {
+ 		if (ischrootpath(basepath))
+ 			minlen = pseudo_chroot_len;
+ 	} else if (pseudo_chroot_len) {
+-		/* "absolute" is really relative to chroot path */
+-		basepath = pseudo_chroot;
+-		baselen = pseudo_chroot_len;
+-		minlen = pseudo_chroot_len;
++		/* This correlates to pseudo_exec_path() but is not
++		 * identical in nature. For file access, default in
++		 * pseudo is to access chroot. So we access chroot by
++		 * default unless we have a specific exception.
++		 * Forcing something into chroot is meaningless here because
++		 * of the default to be in chroot anyway for files.
++		 */
++		if (/*patternlistmatchespath(getenv("PSEUDO_CHROOT_FORCED"), path, NULL, 0, 0) && */
++		    !patternlistmatchespath(getenv("PSEUDO_CHROOT_EXCEPTIONS"), path, NULL, 0, 0)) {
++			/* "absolute" is really relative to chroot path */
++			basepath = pseudo_chroot;
++			baselen = pseudo_chroot_len;
++			minlen = pseudo_chroot_len;
++		}
+ 	}
+ 
+ 	newpath = pseudo_fix_path(basepath, path, minlen, baselen, NULL, leave_last);
+-- 
+2.34.1
+

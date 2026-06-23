@@ -13,5 +13,14 @@ DEPENDS += "python3-jsonschema-native"
 ZEPHYR_SRC_DIR = "${ZEPHYR_BASE}/../bootloader/mcuboot/boot/zephyr"
 
 do_deploy() {
-    cp ${D}/firmware/${PN}.bin ${TOPDIR}/tmp/m7_mcuboot_image.bin
+    # Installed filename includes ZEPHYR_IMAGE_BASE_NAME suffix (machine + timestamp),
+    # so use a glob to find the first .bin for ${PN}.
+    local fw
+    fw=$(ls ${D}/firmware/${PN}*.bin 2>/dev/null | head -1)
+    if [ -n "$fw" ]; then
+        mkdir -p ${TOPDIR}/tmp
+        cp "$fw" ${TOPDIR}/tmp/m7_mcuboot_image.bin
+    else
+        bbfatal "zephyr-mcuboot: no .bin found in ${D}/firmware/"
+    fi
 }

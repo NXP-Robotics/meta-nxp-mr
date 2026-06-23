@@ -7,3 +7,10 @@ SRC_URI += "\
 "
 
 ERROR_QA:remove = "patch-status patch-fuzz"
+
+# Enable LTO for ~10-20% TCG speedup; qemu-native is built once and cached.
+EXTRA_OEMESON:append = " -Db_lto=true"
+
+# Use 'max' CPU model so qemu-aarch64 can use all available host instructions
+# (helps apt-get decompression and crypto operations in Ubuntu chroot builds).
+QEMU_EXTRAOPTIONS_aarch64 = " -cpu max"

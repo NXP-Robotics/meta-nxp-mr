@@ -1,0 +1,145 @@
+From 2fbab79eba24a616993f7993f491d196c77c94f7 Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Mon, 22 Jun 2026 18:05:25 +0200
+Subject: [PATCH] i3c: hub: p3h2840: fix stuck-SDA errors being silently
+ ignored
+
+Two bugs when SDA is stuck low:
+
+- The agent skips the transaction but the status register reads TXN_OK,
+  so the driver returned success with stale data (false-success).
+- After hardware bus recovery (SYNC_RCVCLR) the driver assumed the bus
+  was free without checking, so a permanently stuck bus looped forever.
+
+Enable BUS_RECOVERY on every descriptor. Check TRANSACTION_FINISH_FLAG
+before trusting the status. After SYNC_RCVCLR, read back SDA level to
+confirm the bus is actually free before returning -EAGAIN.
+
+Upstream-Status: Pending
+Signed-off-by: Peter van der Perk <peter.vanderperk@nxp.com>
+---
+ drivers/i3c/hub/p3h2840_i3c_hub.h       | 13 +++++++
+ drivers/i3c/hub/p3h2840_i3c_hub_smbus.c | 50 ++++++++++++++++++++++++-
+ 2 files changed, 61 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i3c/hub/p3h2840_i3c_hub.h b/drivers/i3c/hub/p3h2840_i3c_hub.h
+index 8dc7356e5c60..5ef909b567c9 100644
+--- a/drivers/i3c/hub/p3h2840_i3c_hub.h
++++ b/drivers/i3c/hub/p3h2840_i3c_hub.h
+@@ -233,6 +233,19 @@
+ #define P3H2X4X_SMBUS_400KHZ					BIT(2)
+ #define P3H2X4X_SMBUS_1MHZ					(BIT(2) | BIT(1))
+ 
++/*
++ * Descriptor byte 1 bits [3:4]: enable P3H built-in stuck-SDA recovery.
++ * When set, the SMBus controller detects SDA stuck LOW and automatically
++ * issues 9 SCL pulses; if still stuck, drives SCL LOW for up to 35 ms.
++ * On completion the status register reports SYNC_RCVCLR (code 5).
++ */
++#define P3H2X4X_SMBUS_SDA_STUCK_DETECT			BIT(3)
++#define P3H2X4X_SMBUS_SCL_TIMEOUT_CLEAR		BIT(4)
++#define P3H2X4X_SMBUS_BUS_RECOVERY	(P3H2X4X_SMBUS_SDA_STUCK_DETECT | \
++					 P3H2X4X_SMBUS_SCL_TIMEOUT_CLEAR)
++/* Maximum time for SCL LOW recovery phase (35 ms + margin) */
++#define P3H2X4X_SMBUS_SCL_RECOVERY_TIMEOUT_US		40000
++
+ /* SMBus polling */
+ #define P3H2X4X_POLLING_ROLL_PERIOD_MS				10
+ 
+diff --git a/drivers/i3c/hub/p3h2840_i3c_hub_smbus.c b/drivers/i3c/hub/p3h2840_i3c_hub_smbus.c
+index 374ad945f1e7..9c7f748ff9e7 100644
+--- a/drivers/i3c/hub/p3h2840_i3c_hub_smbus.c
++++ b/drivers/i3c/hub/p3h2840_i3c_hub_smbus.c
+@@ -162,11 +162,32 @@ void p3h2x4x_ibi_handler(struct i3c_device *i3cdev,
+ 	}
+ }
+ 
++/*
++ * Called after hardware bus recovery (SYNC_RCVCLR) to check if SDA was freed.
++ * Register 0x61 is global so it is safe to read with PAGE_PTR set for a port.
++ */
++static int p3h2x4x_smbus_recovery_result(struct p3h2x4x_i3c_hub_dev *hub, u8 port)
++{
++	u32 sda_level;
++	int ret;
++
++	ret = regmap_read(hub->regmap, P3H2X4X_TP_SDA_IN_LEVEL_STS, &sda_level);
++	if (ret)
++		return ret;
++
++	if (sda_level & BIT(port))
++		return -EAGAIN;	/* SDA free; retry the transaction */
++
++	dev_warn_ratelimited(hub->dev, "tp%u: bus recovery failed, SDA still stuck\n", port);
++	return -EIO;
++}
++
+ static int p3h2x4x_read_smbus_transaction_status(struct p3h2x4x_i3c_hub_dev *hub,
+ 						 u8 target_port_status,
+ 						 u8 data_length,
+ 						 u32 clk_rate)
+ {
++	u8 port = target_port_status - P3H2X4X_TP0_SMBUS_AGNT_STS;
+ 	u32 status_read;
+ 	u8 status;
+ 	int ret;
+@@ -182,6 +203,17 @@ static int p3h2x4x_read_smbus_transaction_status(struct p3h2x4x_i3c_hub_dev *hub
+ 	if (ret)
+ 		return ret;
+ 
++	/*
++	 * TRANSACTION_FINISH_FLAG is set when the agent finishes or aborts.
++	 * If clear after the timeout, the agent never started — SDA was low
++	 * so it refused to issue a START, leaving the status at TXN_OK (0).
++	 * Without this check that would be a silent false-success.
++	 */
++	if (!(status_read & P3H2X4X_SMBUS_TRANSACTION_FINISH_FLAG)) {
++		dev_warn_ratelimited(hub->dev, "tp%u: SDA low, transaction not started\n", port);
++		return -EAGAIN;
++	}
++
+ 	status = (u8)status_read;
+ 
+ 	status = (status & P3H2X4X_TP_TRANSACTION_CODE_MASK)
+@@ -198,6 +230,20 @@ static int p3h2x4x_read_smbus_transaction_status(struct p3h2x4x_i3c_hub_dev *hub
+ 		return -ETIMEDOUT;
+ 	case P3H2X4X_SMBUS_CNTRL_STATUS_TXN_ARB_LOSS:
+ 		return -EAGAIN;
++	case P3H2X4X_SMBUS_CNTRL_STATUS_TXN_SYNC_RCV:
++		/* Recovery (9 SCL pulses) in progress; wait, then check it finished. */
++		fsleep(P3H2X4X_SMBUS_SCL_RECOVERY_TIMEOUT_US);
++		ret = regmap_read(hub->regmap, target_port_status, &status_read);
++		if (ret)
++			return ret;
++		status = ((u8)status_read & P3H2X4X_TP_TRANSACTION_CODE_MASK)
++			  >> P3H2X4X_SMBUS_CNTRL_STATUS_TXN_SHIFT;
++		if (status != P3H2X4X_SMBUS_CNTRL_STATUS_TXN_SYNC_RCVCLR)
++			return -EIO;
++		fallthrough;
++	case P3H2X4X_SMBUS_CNTRL_STATUS_TXN_SYNC_RCVCLR:
++		/* Recovery sequence done; check if SDA is actually free now. */
++		return p3h2x4x_smbus_recovery_result(hub, port);
+ 	default:
+ 		return -EIO;
+ 	}
+@@ -216,7 +262,7 @@ static int p3h2x4x_tp_smbus_one(struct p3h2x4x_i3c_hub_dev *p3h2x4x_i3c_hub,
+ 	int ret, ret2;
+ 
+ 	desc[P3H2X4X_DESC_ADDR] = rw_address;
+-	desc[P3H2X4X_DESC_TYPE] = type | speed_type;
++	desc[P3H2X4X_DESC_TYPE] = type | speed_type | P3H2X4X_SMBUS_BUS_RECOVERY;
+ 	desc[P3H2X4X_DESC_WRITE_LEN] = wlen;
+ 	desc[P3H2X4X_DESC_READ_LEN] = rlen;
+ 
+@@ -473,7 +519,7 @@ static int p3h2x4x_tp_smbus_xfer_msg(struct p3h2x4x_i3c_hub_dev *hub,
+ 	}
+ 
+ 	desc[0] = rw_address;
+-	desc[1] = txn_type;
++	desc[1] = txn_type | P3H2X4X_SMBUS_BUS_RECOVERY;
+ 	desc[2] = write_length;
+ 	desc[3] = read_length;
+ 
+-- 
+2.34.1
+

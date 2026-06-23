@@ -106,21 +106,21 @@ APTGET_REMAINING_FAKETOOLS_PACKAGES ?= "kmod"
 APTGET_DL_CACHE ?= "${DL_DIR}/apt-get/${TRANSLATED_TARGET_ARCH}"
 APTGET_CACHE_DIR ?= "${APTGET_CHROOT_DIR}/var/cache/apt/archives"
 
-DEPENDS += "qemu-native rsync-native coreutils-native dpkg-native"
+DEPENDS += "qemu-native rsync-native coreutils-native dpkg-native python3-native"
 
 # We need the proper parameter version for the tool
-APTGET_TARGET_ARCH="${@d.getVar('TRANSLATED_TARGET_ARCH', True).replace("aarch64", "arm64")}"
+APTGET_TARGET_ARCH = "${@d.getVar('TRANSLATED_TARGET_ARCH', True).replace("aarch64", "arm64")}"
 
 # To run native executables required by some installation scripts
-PSEUDO_CHROOT_XPREFIX="${STAGING_BINDIR_NATIVE}/qemu-${TRANSLATED_TARGET_ARCH}"
-DPKG_NATIVE="${STAGING_BINDIR_NATIVE}/dpkg"
+PSEUDO_CHROOT_XPREFIX = "${STAGING_BINDIR_NATIVE}/qemu-${TRANSLATED_TARGET_ARCH}"
+DPKG_NATIVE = "${STAGING_BINDIR_NATIVE}/dpkg"
 
 # When running in qemu, we don't really want libpseudo as qemu is already
 # running with libpseudo. We want to be as chroot as possible and we
 # really only want to run native things inside pseudo chroot
-APTGET_EXTRA_LIBRARY_PATH_COLON="${@":".join((d.getVar("APTGET_EXTRA_LIBRARY_PATH") or "").split())}"
-QEMU_SET_ENV="PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin,LD_LIBRARY_PATH=${APTGET_EXTRA_LIBRARY_PATH_COLON},PSEUDO_PASSWD=${APTGET_CHROOT_DIR},LC_ALL=C,DEBIAN_FRONTEND=noninteractive"
-QEMU_UNSET_ENV="LD_PRELOAD,APT_CONFIG"
+APTGET_EXTRA_LIBRARY_PATH_COLON = "${@":".join((d.getVar("APTGET_EXTRA_LIBRARY_PATH") or "").split())}"
+QEMU_SET_ENV = "PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin,LD_LIBRARY_PATH=${APTGET_EXTRA_LIBRARY_PATH_COLON},PSEUDO_PASSWD=${APTGET_CHROOT_DIR},LC_ALL=C,DEBIAN_FRONTEND=noninteractive"
+QEMU_UNSET_ENV = "LD_PRELOAD,APT_CONFIG"
 
 # This is an ugly one, but I haven't come up yet with a neat solution.
 # It turns out that PAM rejects audit_log_acct_message() because the
@@ -132,11 +132,11 @@ QEMU_UNSET_ENV="LD_PRELOAD,APT_CONFIG"
 # inside the qemu environment fully emulated ... where pseudo is not
 # applied.
 # As quick hack/fix, we just don't do chfn ...
-PSEUDO_CHROOT_XTRANSLATION="chfn=/bin/true"
+PSEUDO_CHROOT_XTRANSLATION = "chfn=/bin/true"
 
 # We force default PATH related elements into chroot as well as
 # any full path executables and scripts
-PSEUDO_CHROOT_FORCED="\
+PSEUDO_CHROOT_FORCED = "\
 /usr/local/bin:\
 /usr/local/sbin:\
 /usr/bin:\
@@ -151,7 +151,7 @@ PSEUDO_CHROOT_FORCED="\
 
 # Some things we always want from the host. This is pseudo related
 # stuff and also dynamic fs elements.
-PSEUDO_CHROOT_EXCEPTIONS="\
+PSEUDO_CHROOT_EXCEPTIONS = "\
 ${PSEUDO_CHROOT_XPREFIX}:\
 ${PSEUDO_PREFIX}/*:\
 ${PSEUDO_LIBDIR}*/*:\
@@ -180,7 +180,7 @@ aptget_debug_shell() {
 
 # We want to ensure that during packaging we use the same
 # passwd/group file that we used during build up of the rootfs.
-PSEUDO_PASSWD="${APTGET_CHROOT_DIR}:${STAGING_DIR_NATIVE}"
+PSEUDO_PASSWD = "${APTGET_CHROOT_DIR}:${STAGING_DIR_NATIVE}"
 
 aptget_update_presetvars() {
 	aptget_debug_shell
@@ -361,6 +361,10 @@ fakeroot aptget_delete_faketools() {
         aptget_delete_faketool "/usr/bin/systemctl" "/__fake_systemctl__"
         aptget_delete_faketool "/usr/bin/dbus-send" "/__fake_dbus-send__"
         aptget_delete_faketool "/usr/bin/dpkg"      "/__dpkgwrapper__"
+        aptget_delete_faketool "/usr/sbin/ldconfig" "/__fake_ldconfig__"
+        aptget_delete_faketool "/sbin/ldconfig"     "/__fake_ldconfig__"
+        aptget_delete_faketool "/usr/bin/py3compile" "/__fake_py3compile__"
+        aptget_delete_faketool "/usr/bin/systemd-hwdb" "/__fake_systemd-hwdb__"
 }
 
 fakeroot aptget_install_faketools() {
@@ -405,6 +409,22 @@ EOF
                 xt="/usr/sbin/udevadm"
         fi
         aptget_install_faketool $xt                     $xf
+
+        # udev's postinst calls 'systemd-hwdb --usr update' to regenerate
+        # /usr/lib/udev/hwdb.bin. Under pseudo+QEMU this creates a new file
+        # with a previously-deleted inode, triggering "path mismatch / NAMELESS
+        # FILE" → abort(). Fake it out: hwdb.bin from the udev package itself
+        # is sufficient; it will be regenerated on first boot anyway.
+        xf="/__fake_systemd-hwdb__"
+        if [ ! -e "${APTGET_CHROOT_DIR}$xf" ]; then
+                cat << 'EOF' >${APTGET_CHROOT_DIR}$xf
+#!/bin/sh
+# hwdb rebuild deferred to first boot; avoids pseudo inode-reuse abort
+exit 0
+EOF
+                chmod a+x "${APTGET_CHROOT_DIR}$xf"
+        fi
+        aptget_install_faketool "/usr/bin/systemd-hwdb" $xf
 
         # Packages like Java use "mountpoint" to check if "/proc" is
         # real. For us, it isn't real, so we need to fake things
@@ -510,6 +530,94 @@ EOF
 
                 aptget_install_faketool "/usr/bin/dpkg" $xf
         fi
+
+        # P3: Defer ldconfig to a single QEMU call at the end of all installs.
+        # Running ldconfig 20-30× during apt wastes significant QEMU time.
+        # NOTE: native x86 ldconfig cannot process aarch64 ELF — must stay QEMU,
+        # but we run it once after all packages are configured.
+        xf="/__fake_ldconfig__"
+        if [ ! -e "${APTGET_CHROOT_DIR}$xf" ]; then
+                cat << 'EOF' >${APTGET_CHROOT_DIR}$xf
+#!/bin/sh
+# Deferred: ldconfig runs once at end of all apt operations (see aptget_update_end)
+exit 0
+EOF
+                chmod a+x "${APTGET_CHROOT_DIR}$xf"
+        fi
+        aptget_install_faketool "/usr/sbin/ldconfig" $xf
+        aptget_install_faketool "/sbin/ldconfig"     $xf
+
+        # P2: Debian's py3compile wrapper calls python3 -m compileall for every
+        # Python package postinst. Python bytecode is arch-independent but
+        # version-specific — we skip it here and recompile natively on the host
+        # after all packages are installed (see aptget_update_end).
+        xf="/__fake_py3compile__"
+        if [ ! -e "${APTGET_CHROOT_DIR}$xf" ]; then
+                cat << 'EOF' >${APTGET_CHROOT_DIR}$xf
+#!/bin/sh
+# Deferred: Python bytecode compiled natively on host after apt (see aptget_update_end)
+exit 0
+EOF
+                chmod a+x "${APTGET_CHROOT_DIR}$xf"
+        fi
+        aptget_install_faketool "/usr/bin/py3compile" $xf
+
+        # P2b: A handful of core Python postinst scripts bypass py3compile and
+        # invoke the interpreter directly to byte-compile the whole stdlib, e.g.
+        # python3.12-minimal.postinst and python3.12.postinst both run:
+        #   /usr/bin/python3.12 -E -S /usr/lib/python3.12/py_compile.py <~280 files>
+        # Under QEMU that emulated-compiles ~570 stdlib files - very slow.
+        #
+        # The faketool rename mechanism cannot help here: py_compile.py does not
+        # exist until libpython3.12-minimal is unpacked *during the same apt run*,
+        # so aptget_preserve_file finds nothing to rename when faketools install.
+        # Instead we register a dpkg *diversion* for py_compile.py: dpkg honours it
+        # at unpack time regardless of order, writing the real file to
+        # py_compile.py.real and leaving our stub at the original path.
+        #
+        # The stub is a valid Python module so that `import py_compile`
+        # (used by compileall and friends) keeps working under QEMU during apt -
+        # it transparently re-exports the real implementation from .real - while
+        # short-circuiting to exit 0 when run as a script (the postinst case).
+        # Real bytecode is regenerated natively after apt (see aptget_update_end).
+        #
+        # The diversion is recorded directly in the dpkg database (host-side, no
+        # QEMU). This is honoured by both the native dpkg --unpack wrapper and the
+        # emulated dpkg.yocto used for --configure.
+        pyc="/usr/lib/python3.12/py_compile.py"
+        divfile="${APTGET_CHROOT_DIR}/var/lib/dpkg/diversions"
+        if [ ! -f "$divfile" ] || ! grep -qsx "$pyc" "$divfile"; then
+                mkdir -p "${APTGET_CHROOT_DIR}/var/lib/dpkg"
+                printf '%s\n%s\n%s\n' "$pyc" "$pyc.real" ":" >> "$divfile"
+        fi
+        mkdir -p "${APTGET_CHROOT_DIR}/usr/lib/python3.12"
+        cat << 'EOF' > "${APTGET_CHROOT_DIR}$pyc"
+"""Yocto nativeaptinstall: py_compile stub. Real bytecode compiled natively after apt."""
+import sys
+
+class PyCompileError(Exception):
+    pass
+
+class PycInvalidationMode:
+    TIMESTAMP = 1
+    CHECKED_HASH = 2
+    UNCHECKED_HASH = 3
+
+def compile(file, cfile=None, dfile=None, doraise=False,
+            optimize=-1, invalidation_mode=PycInvalidationMode.TIMESTAMP, quiet=0):
+    return cfile
+
+def main():
+    # When invoked as 'python3 -m py_compile -' (py3compile pipe protocol):
+    # drain stdin so the parent process doesn't get BrokenPipeError.
+    if '-' in sys.argv[1:]:
+        for _ in sys.stdin:
+            pass
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+EOF
 }
 
 fakeroot aptget_run_aptget() {
@@ -655,6 +763,13 @@ END_USER
 		fi
         fi
 
+	# Enable parallel HTTP downloads for faster package fetching
+	mkdir -p "${APTGET_CHROOT_DIR}/etc/apt/apt.conf.d"
+	cat > "${APTGET_CHROOT_DIR}/etc/apt/apt.conf.d/99yoctoparallel" << 'PARALLELEOF'
+Acquire::http::Pipeline-Depth "10";
+APT::Acquire::Queue-Mode "access";
+PARALLELEOF
+
 	# Prepare apt to be generically usable
 	chroot "${APTGET_CHROOT_DIR}" ${APTGET_EXECUTABLE} ${APTGET_DEFAULT_OPTS} update
 
@@ -683,18 +798,14 @@ END_USER
         # stages though and can't download everything right away.
         aptget_run_aptget -d install ${APTGET_INIT_FAKETOOLS_PACKAGES} ${APTGET_INIT_PACKAGES}
 
-	if [ -n "${APTGET_INIT_FAKETOOLS_PACKAGES}" ]; then
-                # Packages used by faketools are installed
-                # individually so that faketools are used at the right
-                # times
-		x="${APTGET_INIT_FAKETOOLS_PACKAGES}"
-		for i in $x; do
-                        aptget_run_aptget install $i
-                done
-	fi
-	if [ -n "${APTGET_INIT_PACKAGES}" ]; then
-                aptget_run_aptget install ${APTGET_INIT_PACKAGES}
-	fi
+        # Install all init packages in a single apt-get call. apt resolves
+        # dependency ordering within the transaction (dbus-user-session depends
+        # on dbus, so dbus is configured first), so the historical split into
+        # INIT_FAKETOOLS_PACKAGES then INIT_PACKAGES is unnecessary.
+        _init_all="${APTGET_INIT_FAKETOOLS_PACKAGES} ${APTGET_INIT_PACKAGES}"
+        if [ -n "${_init_all# }" ]; then
+                aptget_run_aptget install ${_init_all}
+        fi
 
 	if [ -n "${APTGET_ROS_APT_SOURCE}" ]; then
                 LATEST_TAG_VERSION="${@oe.utils.getstatusoutput("curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep '\"tag_name\"' | cut -d '\"' -f4")[1]}"
@@ -762,19 +873,16 @@ END_PPA
 	fi
 
         # After the PPA has been set up, download everything else.
-        aptget_run_aptget -d install ${APTGET_REMAINING_FAKETOOLS_PACKAGES} \
+        # APTGET_REMAINING_FAKETOOLS_PACKAGES (e.g. kmod) is intentionally omitted
+        # here: it is already listed in APTGET_EXTRA_PACKAGES, which is downloaded
+        # and installed below. Faketools (including __fake_lsmod__) are reinstalled
+        # by aptget_install_faketools before every apt-get call, so there is no
+        # ordering requirement for a separate early install.
+        aptget_run_aptget -d install \
                         ${APTGET_EXTRA_PACKAGES_SERVICES_DISABLED} \
                         ${APTGET_EXTRA_PACKAGES} \
                         ${APTGET_EXTRA_SOURCE_PACKAGES} \
                         ${APTGET_EXTRA_PACKAGES_LAST}
-
-        # Packages affected by faketools are installed
-        # individually so that faketools are used at the right
-        # times
-        x="${APTGET_REMAINING_FAKETOOLS_PACKAGES}"
-        for i in $x; do
-                aptget_run_aptget install $i
-        done
 
 	if [ "${APTGET_SKIP_UPGRADE}" = "0" ]; then
 		aptget_run_aptget -f install
@@ -909,6 +1017,53 @@ fakeroot aptget_update_end() {
 	if [ $aptgetfailure -ne 0 ]; then
 		bberror "${APTGET_EXECUTABLE} failed to execute as expected!"
 		return $aptgetfailure
+	fi
+
+	# P3: Run ldconfig once now that all packages are installed.
+	# During apt installation, ldconfig was faked (/__fake_ldconfig__) to avoid
+	# running it dozens of times under QEMU. Run it once here to build the final cache.
+	bbnote "Running ldconfig once to finalize shared library cache..."
+	aptget_install_faketools
+	chroot "${APTGET_CHROOT_DIR}" /usr/sbin/ldconfig || true
+	aptget_delete_faketools
+
+	# P2b: Undo the py_compile.py diversion installed in aptget_install_faketools
+	# so the genuine module is back in place before we byte-compile natively below
+	# (and so the shipped rootfs contains the real file, not our stub).
+	pyc="/usr/lib/python3.12/py_compile.py"
+	if [ -e "${APTGET_CHROOT_DIR}$pyc.real" ]; then
+		rm -f "${APTGET_CHROOT_DIR}$pyc"
+		mv -f "${APTGET_CHROOT_DIR}$pyc.real" "${APTGET_CHROOT_DIR}$pyc"
+	fi
+	# Drop the local diversion record (3 consecutive lines) from the dpkg database.
+	divfile="${APTGET_CHROOT_DIR}/var/lib/dpkg/diversions"
+	if [ -f "$divfile" ] && grep -qsx "$pyc" "$divfile"; then
+		awk -v p="$pyc" '$0==p{skip=3} skip>0{skip--;next} {print}' \
+			"$divfile" > "$divfile.tmp" && mv -f "$divfile.tmp" "$divfile"
+	fi
+	# Remove any stale bytecode of the stub so native compileall regenerates cleanly.
+	rm -f "${APTGET_CHROOT_DIR}/usr/lib/python3.12/__pycache__/py_compile."*.pyc
+
+	# P2: Recompile Python bytecode natively using Yocto's python3-native.
+	# py3compile was faked during apt (/__fake_py3compile__).
+	# Python .pyc files are architecture-independent but version-specific.
+	# Yocto's python3-native (Python 3.12) matches Ubuntu 24.04's python3
+	# version, so the generated bytecode is valid on target regardless of
+	# what Python version the build host has installed system-wide.
+	PYTHON3_NATIVE="${STAGING_BINDIR_NATIVE}/python3-native/python3"
+	if [ -x "${PYTHON3_NATIVE}" ]; then
+		native_pyver=$(${PYTHON3_NATIVE} -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>/dev/null)
+		bbnote "Recompiling Python bytecode using Yocto python3-native (Python ${native_pyver})..."
+		# -s strips APTGET_CHROOT_DIR from embedded source paths in .pyc headers
+		# -p prepends / so .pyc files contain /usr/lib/... not the full build path
+		# This prevents Yocto buildpaths QA errors from TMPDIR references in .pyc
+		${PYTHON3_NATIVE} -m compileall -q -j0 \
+			-s "${APTGET_CHROOT_DIR}" -p "/" \
+			"${APTGET_CHROOT_DIR}/usr/lib/python3" \
+			"${APTGET_CHROOT_DIR}/usr/lib/python3.12" \
+			2>/dev/null || true
+	else
+		bbnote "python3-native not found at ${PYTHON3_NATIVE}; skipping native pyc recompile (target will recompile on first import)"
 	fi
 
 	if [ -n "${APTGET_EXTRA_PACKAGES_REMOVE}" ]; then

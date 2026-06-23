@@ -7,6 +7,9 @@ inherit module
 
 SRC_URI = "git://git@github.com/NXP-Robotics/autoivnsw_sja1110_linux.git;protocol=https;branch=master"
 SRC_URI += "file://Makefile"
+SRC_URI += "file://0001-gpio-fix-callback-return-types-for-linux-6.12.patch"
+
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRCREV = "${AUTOREV}"
 

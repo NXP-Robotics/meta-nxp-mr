@@ -11,6 +11,8 @@ SRC_URI = "git://git@github.com/NXP-Robotics/rpmsgexport.git;protocol=https;bran
 
 TARGET_CC_ARCH += "${LDFLAGS}"
 
+INSANE_SKIP:${PN}-dbg += "buildpaths"
+
 do_install() {
 	oe_runmake
 	install -d ${D}${bindir}

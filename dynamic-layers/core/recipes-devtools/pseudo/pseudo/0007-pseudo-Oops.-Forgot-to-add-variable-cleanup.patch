@@ -1,0 +1,37 @@
+From a482108065aa8774678268ca3c1751c14cb67a44 Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Fri, 12 Jun 2026 12:24:02 +0200
+Subject: [PATCH 07/22] pseudo: Oops. Forgot to add variable cleanup
+
+---
+ pseudo_client.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/pseudo_client.c b/pseudo_client.c
+index 1b669fa..f17820c 100644
+--- a/pseudo_client.c
++++ b/pseudo_client.c
+@@ -2242,8 +2242,9 @@ populate_path_segs(void) {
+ 
+ const char *
+ pseudo_exec_path(const char *filename, int search_path) {
++	char *s;
+ 	char *path = getenv("PATH");
+-	char *candidate;
++	const char *candidate;
+ 	int i;
+ 	struct stat buf;
+ 	char aliasbuf[NAME_MAX];
+@@ -2317,7 +2318,8 @@ pseudo_exec_path(const char *filename, int search_path) {
+ 		}
+ 	}
+ 	/* blind guess being as good as anything */
++	candidate = filename;
+ 	pseudo_magic();
+-	return filename;
++	return candidate;
+ }
+ 
+-- 
+2.34.1
+

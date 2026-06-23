@@ -1,0 +1,45 @@
+From: meta-nxp-mr <nxp-embedded@nxp.com>
+Date: Mon, 16 Jun 2025 00:00:00 +0000
+Subject: [PATCH] remote_input: use BUS_USB fallback instead of
+ libinput_device_get_id_bustype
+
+libinput_device_get_id_bustype() was introduced in libinput 1.26.0
+(LIBINPUT_1.26 symbol version).  Ubuntu 24.04 ships libinput 1.25.0
+which does not export this function.
+
+Replace the two call sites with BUS_USB (0x0003) which is a safe fallback
+for virtual input devices created by remote_input.  The bus_type value is
+used only to populate uinput_setup.id.bustype for the virtual device
+identity and for debug logging — USB is appropriate here.
+
+BUS_USB is defined in <linux/input.h>, available transitively via libinput.h.
+
+Upstream-Status: Submitted [https://github.com/nxp-imx/imx-gst1.0-plugin]
+Signed-off-by: meta-nxp-mr <nxp-embedded@nxp.com>
+---
+ tools/remote-desktop/remote_input.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/tools/remote-desktop/remote_input.c b/tools/remote-desktop/remote_input.c
+--- a/tools/remote-desktop/remote_input.c
++++ b/tools/remote-desktop/remote_input.c
+@@ -320,7 +320,8 @@
+   RINPUT_RESULT ret = RINPUT_OK;
+   const char *sys_name = libinput_device_get_sysname (device);
+ 
+-  bus_type = libinput_device_get_id_bustype (device);
++  /* libinput_device_get_id_bustype() requires libinput >= 1.26; use BUS_USB fallback */
++  bus_type = BUS_USB;
+   if (libinput_device_has_capability (device, LIBINPUT_DEVICE_CAP_POINTER)) {
+     remote_input_debug ("Mouse added, sys_name: %s, bus_type: %d\n", sys_name,
+         bus_type);
+@@ -350,7 +351,8 @@
+   RINPUT_RESULT ret = RINPUT_OK;
+   const char *sys_name = libinput_device_get_sysname (device);
+ 
+-  bus_type = libinput_device_get_id_bustype (device);
++  /* libinput_device_get_id_bustype() requires libinput >= 1.26; use BUS_USB fallback */
++  bus_type = BUS_USB;
+   if (libinput_device_has_capability (device, LIBINPUT_DEVICE_CAP_POINTER)) {
+     remote_input_debug ("Mouse removed, sys_name: %s, bus_type: %d\n", sys_name,
+         bus_type);

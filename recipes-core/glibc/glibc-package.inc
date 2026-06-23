@@ -24,6 +24,8 @@ libc_baselibs:append = " ${@oe.utils.conditional('ARCH_DYNAMIC_LOADER', '', '', 
 INSANE_SKIP:${PN}:append:aarch64 = " libdir"
 INSANE_SKIP:${PN}-dev += "staticdev"
 INSANE_SKIP:${MLPREFIX}ldso:append = " dev-so libdir"
+INSANE_SKIP:glibc-dbg += "buildpaths"
+INSANE_SKIP:glibc-staticdev += "buildpaths"
 
 FILES:${PN} = "${libc_baselibs} ${libexecdir}/* ${sysconfdir}/ld.so.conf"
 RRECOMMENDS:${PN} = "${@bb.utils.contains('DISTRO_FEATURES', 'ldconfig', '${MLPREFIX}ldconfig', '', d)}"
@@ -71,10 +73,10 @@ do_install() {
 	oe_runmake install_root=${D} install
 	install -Dm 0644 ${UNPACKDIR}/etc/ld.so.conf ${D}/${sysconfdir}/ld.so.conf
 	install -d ${D}${localedir}
-	make -f ${UNPACKDIR}/generate-supported.mk IN="${S}/localedata/SUPPORTED" OUT="${UNPACKDIR}/SUPPORTED"
+	make -f ${UNPACKDIR}/generate-supported.mk IN="${S}/localedata/SUPPORTED" OUT="${WORKDIR}/SUPPORTED"
 	# get rid of some broken files...
 	for i in ${GLIBC_BROKEN_LOCALES}; do
-		sed -i "/$i/d" ${UNPACKDIR}/SUPPORTED
+		sed -i "/$i/d" ${WORKDIR}/SUPPORTED
 	done
 	rm -f ${D}${sysconfdir}/rpc
 	rm -rf ${D}${datadir}/zoneinfo
@@ -176,7 +178,7 @@ do_install_armmultilib:append:class-target() {
     rmdir --ignore-fail-on-non-empty ${D}${includedir}/finclude
 }
 
-LOCALESTASH = "${UNPACKDIR}/stashed-locale"
+LOCALESTASH = "${WORKDIR}/stashed-locale"
 bashscripts = "mtrace sotruss xtrace"
 
 do_stash_locale () {
@@ -205,7 +207,7 @@ do_stash_locale () {
 	fi
 
 	cp -fpPR ${D}${datadir}/* $dest${datadir}
-	cp -fpPR ${UNPACKDIR}/SUPPORTED $dest
+	cp -fpPR ${WORKDIR}/SUPPORTED $dest
 
 	target=$dest/scripts
 	mkdir -p $target
@@ -292,7 +294,7 @@ pkg_postinst:nscd () {
 		fi
 	fi
 }
-CONFFILES:nscd="${sysconfdir}/nscd.conf"
+CONFFILES:nscd = "${sysconfdir}/nscd.conf"
 
 SYSTEMD_PACKAGES = "nscd"
 SYSTEMD_SERVICE:nscd = "nscd.service"

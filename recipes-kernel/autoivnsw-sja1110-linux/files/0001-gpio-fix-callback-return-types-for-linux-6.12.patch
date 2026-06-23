@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: meta-nxp-mr <meta-nxp-mr@nxp.com>
+Date: Thu, 12 Jun 2026 00:00:00 +0000
+Subject: [PATCH] gpio: fix callback return types for linux 6.12+
+
+The gpio_chip .set and .set_multiple callback function pointers changed
+their return type from void to int in linux 6.12. Update the sja1110
+driver callbacks to match the new prototype.
+
+Upstream-Status: Inappropriate [platform specific]
+
+Signed-off-by: meta-nxp-mr <meta-nxp-mr@nxp.com>
+---
+ sja1110_init.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/sja1110_init.c b/sja1110_init.c
+index 1234567..abcdefg 100644
+--- a/sja1110_init.c
++++ b/sja1110_init.c
+@@ -898,7 +898,7 @@
+ 	return reg_val & BIT(gpio);
+ }
+ 
+-static void sja1110_gpio_set(struct gpio_chip *chip, unsigned gpio, int val)
++static int sja1110_gpio_set(struct gpio_chip *chip, unsigned gpio, int val)
+ {
+ 	struct sja1110_priv *sja1110 = gpiochip_get_data(chip);
+ 	u32 reg_addr;
+@@ -913,11 +913,10 @@
+ 	mutex_lock(&sja1110->lock);
+ 	sja1110_write_reg(sja1110, reg_addr, BIT(gpio));
+ 	mutex_unlock(&sja1110->lock);
+-
+-	return;
++	return 0;
+ }
+ 
+-static void sja1110_gpio_set_multiple(struct gpio_chip *chip,
++static int sja1110_gpio_set_multiple(struct gpio_chip *chip,
+ 				      unsigned long *mask, unsigned long *bits)
+ {
+ 	struct sja1110_priv *sja1110 = gpiochip_get_data(chip);
+@@ -929,6 +928,7 @@
+ 	reg_val |= (mask[0] & bits[0]);
+ 	sja1110_write_reg(sja1110, GPIO_PDO_ADDR, reg_val);
+ 	mutex_unlock(&sja1110->lock);
++	return 0;
+ }
+ 
+ static int sja1110_set_config(struct gpio_chip *chip, unsigned gpio,
