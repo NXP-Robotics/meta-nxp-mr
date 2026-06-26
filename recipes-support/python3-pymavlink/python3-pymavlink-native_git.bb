@@ -13,7 +13,7 @@ inherit setuptools3 native
 PV = "1.0+git"
 SRCREV = "b401fe0238b9647f8ea18d58d9e968b79b347916"
 
-S = "${UNPACKDIR}/git/pymavlink"
+S = "${UNPACKDIR}/${BP}/pymavlink"
 
 DEPENDS += "python3-fastcrc-native python3-cython-native python3-native"
 RDEPENDS:${PN} += "python3-fastcrc python3-lxml python3-core python3-native"

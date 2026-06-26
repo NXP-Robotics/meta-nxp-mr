@@ -9,3 +9,10 @@ do_install:append () {
         install -m 0644 ${UNPACKDIR}/blacklist.conf ${D}${sysconfdir}/modprobe.d/blacklist-nxp.conf
     fi
 }
+
+# wrynose's oe-core split udev-extraconf into -automount/-autonet sub-packages
+# and made the main package RDEPEND on them. Since we wipe ${sysconfdir} above
+# (LDP: only blacklist-nxp.conf is shipped), those sub-packages are empty and no
+# rpm is generated, which breaks image do_rootfs ("nothing provides
+# udev-extraconf-automount/-autonet"). Drop the dangling dependency.
+RDEPENDS:${PN}:remove = "${PN}-automount ${PN}-autonet"

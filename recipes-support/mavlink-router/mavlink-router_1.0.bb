@@ -12,6 +12,7 @@ SRCREV = "c20337bbc61abda21463e7482172d58b654e66b6"
 
 SRC_URI = "gitsm://github.com/mavlink-router/mavlink-router.git;protocol=https;branch=${SRCBRANCH} \
            file://main.conf \
+           file://0001-dedup-include-cstdint.patch \
            "
 
 SYSTEMD_SERVICE:${PN} = "mavlink-router.service"

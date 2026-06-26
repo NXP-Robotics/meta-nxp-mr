@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Benjamin Perseghetti <bperseghetti@rudislabs.com>
+Date: Wed, 8 Jan 2025 00:00:00 +0000
+Subject: [PATCH] qemu-native: fix fchmodat2 libc syscall emulation
+
+fchmodat2 was the only chmod-family syscall still on a raw safe_syscall
+wrapper; chmod/fchmod/fchmodat already go through host libc. Under
+QEMU_LIBCSYSCALL=1 the raw path bypasses pseudo's LD_PRELOAD wrappers, so
+a chmod done via fchmodat2 is invisible to pseudo. glibc >=2.39 routes
+fchmodat(...,AT_SYMLINK_NOFOLLOW) through fchmodat2, which shadow's
+useradd/groupadd use when rewriting passwd/group/shadow/gshadow during
+do_rootfs. The lost chmod leaves those files at shadow's 0600 creation
+default (instead of 0644/0640), making /etc/passwd unreadable to non-root
+on the target ("I have no name!"). qemu 10.0.6 had no fchmodat2 handler so
+glibc fell back to libc fchmodat; qemu 10.2.x added a raw handler and broke
+the fallback.
+
+Route fchmodat2 through libc fchmodat when do_libcsyscall is enabled so
+pseudo sees the mode change. Flag numerics are arch-independent, so no
+target translation is needed.
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Benjamin Perseghetti <bperseghetti@rudislabs.com>
+---
+ linux-user/syscall.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/linux-user/syscall.c b/linux-user/syscall.c
+index 3daed0a..bbbbbbb 100644
+--- a/linux-user/syscall.c
++++ b/linux-user/syscall.c
+@@ -868,9 +868,15 @@ safe_syscall6(ssize_t, copy_file_range, int, infd, loff_t *, pinoff,
+               int, outfd, loff_t *, poutoff, size_t, length,
+               unsigned int, flags)
+ #endif
+ #if defined(TARGET_NR_fchmodat2) && defined(__NR_fchmodat2)
+-safe_syscall4(int, fchmodat2, int, dfd, const char *, filename,
+-              unsigned short, mode, unsigned int, flags)
++static int safe_fchmodat2(int dfd, const char *filename,
++                          unsigned short mode, unsigned int flags)
++{
++    if (do_libcsyscall) {
++        return fchmodat(dfd, filename, mode, flags);
++    }
++    return safe_syscall(__NR_fchmodat2, dfd, filename, mode, flags);
++}
+ #endif
+ 
+ /* We do ioctl like this rather than via safe_syscall3 to preserve the
+-- 
+2.34.1

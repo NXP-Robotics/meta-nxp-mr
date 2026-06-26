@@ -130,6 +130,19 @@ fakeroot do_aptget_user_update:append() {
 	# Per Yocto docs it should never be packaged
 	rm -f "${APTGET_CHROOT_DIR}${infodir}/dir"
 
+	# This image uses Yocto's Mesa (built from source, e.g. Panthor) as the GPU
+	# userland. Yocto's mesa-megadriver ships /usr/share/drirc.d/00-mesa-defaults.conf
+	# and the Ubuntu rootfs bundles its own copy of the mesa/radv drirc defaults,
+	# which collide at rootfs assembly (rpm file conflict). Drop the Ubuntu-provided
+	# drirc defaults so the Yocto Mesa files win (the .so libs do not collide as
+	# Ubuntu uses /usr/lib/${TRANSLATED_TARGET_ARCH}-linux-gnu while Yocto uses /usr/lib).
+	rm -rf "${APTGET_CHROOT_DIR}/usr/share/drirc.d"
+
+	# Ubuntu ships an empty /etc/.pwd.lock; a qemu useradd scriptlet deletes it
+	# outside pseudo, freeing an inode rpm reuses -> pseudo abort. Drop it; lckpwdf
+	# recreates it at runtime. https://wiki.yoctoproject.org/wiki/Pseudo_Abort
+	rm -f "${APTGET_CHROOT_DIR}${sysconfdir}/.pwd.lock"
+
 	# There is an unfulfilled libldap dependency.
 	# Fixing the dependency seems a bit tricky to do,
 	# so we eliminate the single tool that causes

@@ -16,16 +16,17 @@ Signed-off-by: Benjamin Perseghetti <bperseghetti@rudislabs.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/linux-user/syscall.c b/linux-user/syscall.c
-index 1234567..abcdefg 100644
+index 3daed0ae55..afc98e7671 100644
 --- a/linux-user/syscall.c
 +++ b/linux-user/syscall.c
-@@ -7279,7 +7279,7 @@ static inline int tswapid(int id)
- _libc_syscall1(int, sys_setuid, setuid, uid_t, uid)
+@@ -7627,7 +7627,7 @@ _libc_syscall1(int, sys_setuid, setuid, uid_t, uid)
  _libc_syscall1(int, sys_setgid, setgid, gid_t, gid)
  _libc_syscall3(int, sys_setresuid, setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
  _libc_syscall3(int, sys_setresgid, setresgid, gid_t, rgid, gid_t, egid, gid_t, sgid)
 -_syscall2(int, sys_setgroups, int, size, gid_t *, grouplist)
 +_libc_syscall2(int, sys_setgroups, setgroups, int, size, gid_t *, grouplist)
+ _syscall2(int, sys_setreuid, uid_t, ruid, uid_t, euid);
+ _syscall2(int, sys_setregid, gid_t, rgid, gid_t, egid);
  
- void syscall_init(void)
-
+-- 
+2.34.1

@@ -44,4 +44,10 @@ PACKAGECONFIG[dmabuf-server-buffer] = "-DFEATURE_wayland_dmabuf_server_buffer=ON
 
 DEPENDS += "qtbase qtdeclarative qtwayland-native wayland wayland-native"
 
+# Generated protocol headers (qwayland-*.h) and the -src debug sources embed the
+# absolute build path of the .xml protocol files. Matches meta-qt6 qtwayland_git.bb
+# (-dev) and the sibling qtbase/qtdeclarative 6.4.3 forks (-src).
+INSANE_SKIP:${PN}-dev += "buildpaths"
+INSANE_SKIP:${PN}-src += "buildpaths"
+
 BBCLASSEXTEND = "native nativesdk"

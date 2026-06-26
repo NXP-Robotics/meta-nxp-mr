@@ -1,0 +1,32 @@
+From: meta-nxp-mr <peter@navq.local>
+Date: Thu, 26 Jun 2026 00:00:00 +0000
+Subject: [PATCH] meson: disable DRI3 explicit sync to match noble libxcb 1.15
+
+The Yocto sysroot ships libxcb/xcb-proto 1.17, so Mesa enables its DRI3 1.4
+explicit-sync WSI path and references xcb_present_pixmap_synced and
+xcb_dri3_import_syncobj_checked. This image runs on an Ubuntu/noble rootfs whose
+runtime libxcb is 1.15 and does NOT export those symbols, so the resulting
+libvulkan_panfrost.so (PanVK) fails the loader's undefined-symbol check and is
+ignored -> vkCreateInstance reports "Found no drivers".
+
+Force with_dri3_explicit_sync off so the symbols are compiled out; Mesa falls back
+to the non-explicit-sync DRI3/Present path.
+
+Upstream-Status: Inappropriate [BSP runtime-ABI workaround for Ubuntu-rootfs trick]
+---
+--- a/meson.build	2026-06-26 10:28:46.638851464 +0200
++++ b/meson.build	2026-06-26 10:28:46.654851574 +0200
+@@ -2175,7 +2175,12 @@
+   if with_dri_platform == 'drm'
+     dep_xcb_dri3 = dependency('xcb-dri3', version : dep_xcb_dri3_version)
+     dep_xcb_present = dependency('xcb-present', version : dep_xcb_present_version)
+-    if (dep_xcb_dri3.version().version_compare('>= 1.17') and
++    # meta-nxp-mr: the runtime libxcb is the Ubuntu/noble rootfs's 1.15, which
++    # lacks xcb_present_pixmap_synced / xcb_dri3_import_syncobj (DRI3 1.4 explicit
++    # sync, new in libxcb/xcb-proto 1.17). Building against the Yocto sysroot's
++    # libxcb 1.17 would make the Mesa .so reference those symbols and fail to load
++    # on the board ("Found no drivers"). Force-disable so they are compiled out.
++    if (false and dep_xcb_dri3.version().version_compare('>= 1.17') and
+         dep_xcb_present.version().version_compare('>= 1.17'))
+       with_dri3_explicit_sync = true
+     endif

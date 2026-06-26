@@ -1,6 +1,6 @@
 From 9009645aea9a1665a780bab9da80029c8a02684d Mon Sep 17 00:00:00 2001
 From: Peter van der Perk <peter.vanderperk@nxp.com>
-Date: Fri, 12 Jun 2026 12:24:40 +0200
+Date: Fri, 12 Jun 2026 12:24:02 +0200
 Subject: [PATCH 20/22] pseudo: Critical chroot readlink fix
 
 ---
@@ -8,10 +8,10 @@ Subject: [PATCH 20/22] pseudo: Critical chroot readlink fix
  1 file changed, 9 insertions(+), 4 deletions(-)
 
 diff --git a/pseudo_util.c b/pseudo_util.c
-index 6dc42f6..4d4c7ed 100644
+index 874b83f..e12e393 100644
 --- a/pseudo_util.c
 +++ b/pseudo_util.c
-@@ -692,8 +692,9 @@ pseudo_append_element(char *newpath, char *root, size_t allocated, char **pcurre
+@@ -723,8 +723,9 @@ pseudo_append_element(char *newpath, char *root, size_t allocated, char **pcurre
  			char linkbuf[pseudo_path_max() + 1];
  			ssize_t linklen;
  			int retval;
@@ -22,7 +22,7 @@ index 6dc42f6..4d4c7ed 100644
  			if (linklen == -1) {
  				pseudo_debug(PDBGF_PATH, "uh-oh!  '%s' seems to be a symlink, but I can't read it.  Ignoring.\n", newpath);
  				*pcurrent = current;
-@@ -703,7 +704,13 @@ pseudo_append_element(char *newpath, char *root, size_t allocated, char **pcurre
+@@ -734,7 +735,13 @@ pseudo_append_element(char *newpath, char *root, size_t allocated, char **pcurre
  			linkbuf[linklen] = '\0';
  			/* absolute symlink means go back to root */
  			if (*linkbuf == '/') {
@@ -35,9 +35,9 @@ index 6dc42f6..4d4c7ed 100644
 +				// host path.
 +				current = (readlinkp) ? newpath : root;
  			} else {
- 				/* point back at the end of the previous path... */
- 				current -= (elen + 1);
-@@ -810,8 +817,6 @@ pseudo_fix_path(const char *base, const char *path, size_t rootlen, size_t basel
+ #ifdef PSEUDO_PORT_LINUX
+ 				if (is_proc) {
+@@ -881,8 +888,6 @@ pseudo_fix_path(const char *base, const char *path, size_t rootlen, size_t basel
  	char *effective_root;
  	int trailing_slash = 0;
  	

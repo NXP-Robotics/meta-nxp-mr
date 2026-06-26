@@ -147,7 +147,7 @@ libxdmcp6 libxdmcp-dbg libxdmcp-dev  \
 libxext6 libxext-dbg libxext-dev  \
 libxfont2-2 libxfont2-dev libxft2 libxft-dbg libxft-dev  \
 libxi6 libxi-dev libxkbcommon libxkbcommon0 libxkbcommon-dev  \
-libxkbfile1 libxkbfile-dev libxml2 libxml2-dbg libxml2-dev  \
+libxkbfile1 libxkbfile-dev libxml2-dbg libxml2-dev  \
 libxrandr2 libxrandr-dev libxrender1 libxrender-dbg libxrender-dev  \
 libxshmfence1 libxshmfence-dev libxslt libxtst6 libxtst-dev  \
 libxxf86vm1 libxxf86vm-dev  \

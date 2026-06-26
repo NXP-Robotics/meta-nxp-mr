@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: peter <peter@navq.local>
+Date: Thu, 26 Jun 2026 00:00:00 +0000
+Subject: [PATCH] cmake: find LibLZMA in module mode
+
+The cross-compile branch used find_package(LibLZMA HINTS ... REQUIRED).
+Since CMake 4.3 the HINTS keyword forces Config mode, which looks for a
+LibLZMAConfig.cmake that liblzma does not ship (it only provides pkg-config
+and CMake's bundled FindLibLZMA module). Drop HINTS so module mode is used;
+CMAKE_FIND_ROOT_PATH already points at the recipe sysroot where liblzma is.
+
+Upstream-Status: Inappropriate [cross-build/cmake-4.3 specific]
+---
+ src/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 1111111..2222222 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -45,7 +45,7 @@ if(NOT BUILD_WITHOUT_CURL)
+     find_package(CURL REQUIRED)
+ endif()
+ if (CMAKE_CROSSCOMPILING)
+-    find_package(LibLZMA HINTS "${CMAKE_PREFIX_PATH}" REQUIRED)
++    find_package(LibLZMA REQUIRED)
+ else()
+     find_package(LibLZMA REQUIRED)
+ endif()

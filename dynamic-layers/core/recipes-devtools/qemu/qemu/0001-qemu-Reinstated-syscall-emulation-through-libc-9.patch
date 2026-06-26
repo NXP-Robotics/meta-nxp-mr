@@ -3,17 +3,14 @@ From: Peter van der Perk <peter.vanderperk@nxp.com>
 Date: Fri, 20 Jun 2025 15:14:38 +0200
 Subject: [PATCH] qemu-Reinstated-syscall-emulation-through-libc-8
 
----
- linux-user/main.c           |  7 +++
- linux-user/syscall.c        | 95 +++++++++++++++++++++++++++++++------
- linux-user/user-internals.h |  1 +
- 3 files changed, 89 insertions(+), 14 deletions(-)
+Upstream-Status: Inappropriate [embedded specific]
 
+---
 diff --git a/linux-user/main.c b/linux-user/main.c
-index 149e35432e..ee4d66936b 100644
+index c49d1e9..f09c158 100644
 --- a/linux-user/main.c
 +++ b/linux-user/main.c
-@@ -421,6 +421,11 @@ static void handle_arg_strace(const char *arg)
+@@ -429,6 +429,11 @@ static void handle_arg_strace(const char *arg)
      enable_strace = true;
  }
  
@@ -25,8 +22,8 @@ index 149e35432e..ee4d66936b 100644
  static void handle_arg_version(const char *arg)
  {
      printf("qemu-" TARGET_NAME " version " QEMU_FULL_VERSION
-@@ -507,6 +512,8 @@ static const struct qemu_argument arg_table[] = {
-      "",           "run with one guest instruction per emulated TB"},
+@@ -518,6 +523,8 @@ static const struct qemu_argument arg_table[] = {
+      "size",       "TCG translation block cache size"},
      {"strace",     "QEMU_STRACE",      false, handle_arg_strace,
       "",           "log system calls"},
 +    {"libcsyscall","QEMU_LIBCSYSCALL", false, handle_arg_libcsyscall,
@@ -35,10 +32,10 @@ index 149e35432e..ee4d66936b 100644
       "",           "Seed for pseudo-random number generator"},
      {"trace",      "QEMU_TRACE",       true,  handle_arg_trace,
 diff --git a/linux-user/syscall.c b/linux-user/syscall.c
-index 2c3de86709..5ef290eed9 100644
+index 7404af9..3daed0a 100644
 --- a/linux-user/syscall.c
 +++ b/linux-user/syscall.c
-@@ -65,6 +65,7 @@
+@@ -66,6 +66,7 @@
  #include <linux/in6.h>
  #include <linux/errqueue.h>
  #include <linux/random.h>
@@ -46,16 +43,16 @@ index 2c3de86709..5ef290eed9 100644
  #ifdef CONFIG_TIMERFD
  #include <sys/timerfd.h>
  #endif
-@@ -144,6 +145,8 @@
- #include "fd-trans.h"
- #include "cpu_loop-common.h"
+@@ -163,6 +164,8 @@
+ #define TCSETSF2 TCSETSF
+ #endif
  
 +int do_libcsyscall=0;
 +
  #ifndef CLONE_IO
  #define CLONE_IO                0x80000000      /* Clone io context */
  #endif
-@@ -264,6 +267,37 @@ static type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5,	\
+@@ -283,6 +286,37 @@ static type name (type1 arg1,type2 arg2,type3 arg3,type4 arg4,type5 arg5,	\
  	return syscall(__NR_##name, arg1, arg2, arg3, arg4, arg5, arg6);	\
  }
  
@@ -93,7 +90,7 @@ index 2c3de86709..5ef290eed9 100644
  
  #define __NR_sys_uname __NR_uname
  #define __NR_sys_getcwd1 __NR_getcwd
-@@ -459,13 +493,12 @@ static const bitmask_transtbl fcntl_flags_tbl[] = {
+@@ -478,13 +512,12 @@ static const bitmask_transtbl fcntl_flags_tbl[] = {
  #endif
  };
  
@@ -109,8 +106,8 @@ index 2c3de86709..5ef290eed9 100644
  #else
  static int sys_utimensat(int dirfd, const char *pathname,
                           const struct timespec times[2], int flags)
-@@ -603,6 +636,31 @@ static int check_zeroed_user(abi_long addr, size_t ksize, size_t usize)
-     return 1;
+@@ -649,6 +682,31 @@ int copy_struct_from_user(void *dst, size_t ksize, abi_ptr src, size_t usize)
+     return 0;
  }
  
 +#define libc_syscallargs(name, ...) \
@@ -141,16 +138,16 @@ index 2c3de86709..5ef290eed9 100644
  #define safe_syscall0(type, name) \
  static type safe_##name(void) \
  { \
-@@ -652,7 +710,7 @@ static type safe_##name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, \
+@@ -698,7 +756,7 @@ static type safe_##name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, \
  
  safe_syscall3(ssize_t, read, int, fd, void *, buff, size_t, count)
  safe_syscall3(ssize_t, write, int, fd, const void *, buff, size_t, count)
 -safe_syscall4(int, openat, int, dirfd, const char *, pathname, \
 +libc_syscall4(int, openat, int, dirfd, const char *, pathname, \
                int, flags, mode_t, mode)
- #if defined(TARGET_NR_wait4) || defined(TARGET_NR_waitpid)
- safe_syscall4(pid_t, wait4, pid_t, pid, int *, status, int, options, \
-@@ -660,7 +718,7 @@ safe_syscall4(pid_t, wait4, pid_t, pid, int *, status, int, options, \
+ 
+ safe_syscall4(int, openat2, int, dirfd, const char *, pathname, \
+@@ -710,7 +768,7 @@ safe_syscall4(pid_t, wait4, pid_t, pid, int *, status, int, options, \
  #endif
  safe_syscall5(int, waitid, idtype_t, idtype, id_t, id, siginfo_t *, infop, \
                int, options, struct rusage *, rusage)
@@ -159,8 +156,8 @@ index 2c3de86709..5ef290eed9 100644
  safe_syscall5(int, execveat, int, dirfd, const char *, filename,
                char **, argv, char **, envp, int, flags)
  #if defined(TARGET_NR_select) || defined(TARGET_NR__newselect) || \
-@@ -766,9 +824,9 @@ safe_syscall6(ssize_t, copy_file_range, int, infd, loff_t *, pinoff,
-  * This will then work and use a 64-bit offset for both 32-bit and 64-bit hosts.
+@@ -818,9 +876,9 @@ safe_syscall4(int, fchmodat2, int, dfd, const char *, filename,
+  * we should be using the 64-bit structures automatically.
   */
  #ifdef __NR_fcntl64
 -#define safe_fcntl(...) safe_syscall(__NR_fcntl64, __VA_ARGS__)
@@ -171,8 +168,8 @@ index 2c3de86709..5ef290eed9 100644
  #endif
  
  static inline int host_to_target_sock_type(int host_type)
-@@ -7218,10 +7276,10 @@ static inline int tswapid(int id)
- #define __NR_sys_setgroups __NR_setgroups
+@@ -7565,10 +7623,10 @@ static inline int tswapid(int id)
+ #define __NR_sys_setregid __NR_setregid
  #endif
  
 -_syscall1(int, sys_setuid, uid_t, uid)
@@ -184,9 +181,9 @@ index 2c3de86709..5ef290eed9 100644
 +_libc_syscall3(int, sys_setresuid, setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
 +_libc_syscall3(int, sys_setresgid, setresgid, gid_t, rgid, gid_t, egid, gid_t, sgid)
  _syscall2(int, sys_setgroups, int, size, gid_t *, grouplist)
- 
- void syscall_init(void)
-@@ -12839,9 +12897,18 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
+ _syscall2(int, sys_setreuid, uid_t, ruid, uid_t, euid);
+ _syscall2(int, sys_setregid, gid_t, rgid, gid_t, egid);
+@@ -13371,9 +13429,18 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
                  }
                  tsp = ts;
              }
@@ -209,10 +206,10 @@ index 2c3de86709..5ef290eed9 100644
                      return -TARGET_EFAULT;
                  }
 diff --git a/linux-user/user-internals.h b/linux-user/user-internals.h
-index ce11d9e21c..090398c80c 100644
+index 24d3599..6d20949 100644
 --- a/linux-user/user-internals.h
 +++ b/linux-user/user-internals.h
-@@ -97,6 +97,7 @@ void probe_guest_base(const char *image_name,
+@@ -98,6 +98,7 @@ void probe_guest_base(const char *image_name,
  
  /* syscall.c */
  int host_to_target_waitstatus(int status);
@@ -222,4 +219,3 @@ index ce11d9e21c..090398c80c 100644
  /* vm86.c */
 -- 
 2.34.1
-

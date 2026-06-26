@@ -37,12 +37,21 @@ IMAGE_INSTALL:append:imx8mpnavq = " \
 	tensorflow-lite-vx-delegate \
 	"
 
+# Mali-G310 needs its CSF firmware to run under Panthor: at probe the driver
+# reads the GPU arch and requests arm/mali/arch10.12/mali_csffw.bin. Without it
+# request_firmware fails and panthor waits out the 60s sysfs fallback, which also
+# stalls systemd-modules-load (panthor.conf autoload) and pushes boot past 90s.
+# meta-imx names this exact package in MACHINE_EXTRA_RDEPENDS:imxmali, but this
+# Ubuntu-base image only installs explicit IMAGE_INSTALL, so it never arrived.
+# Shipping it lets Panthor bind (renderD129 appears, Mesa uses the GPU instead of
+# llvmpipe) and drops boot to ~14s.
 IMAGE_INSTALL:append:imx95-navq = " \
 	rpmsgexport \
 	rpmsgfs-remotedirs \
 	rpmsgfs-server \
 	autoivnsw-sja1110-linux \
 	firmware-sja1110 \
+	linux-firmware-mali-csffw-arch1012 \
 	"
 
 APTGET_EXTRA_PACKAGES += "\
@@ -50,6 +59,10 @@ APTGET_EXTRA_PACKAGES += "\
 	python3-numpy \
 	python3-pil \
 	python3-pip \
+	vulkan-tools \
+	iw \
+	rfkill \
+	wireless-tools \
 "
 
 ##############################################################################
@@ -92,9 +105,6 @@ IMAGE_INSTALL:append:imx95-navq = " \
 	weston \
 	xwayland \
 	weston-xwayland \
-	mali-imx \
-	mali-imx-dev \
-	mali-imx-opencl-icd-dev \
 	patrace \
 	${G2D_SAMPLES} \
 	reboot-to-fastboot \

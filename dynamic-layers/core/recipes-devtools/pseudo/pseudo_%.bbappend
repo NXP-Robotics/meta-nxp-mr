@@ -2,11 +2,13 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
 # Add support for extra syscalls and better chroot to support apt-get
 # use inside pseudo for target rootfs setups
-# Patches rebased onto pseudo 1.9.2 (d1db9c2) for whinlatter.
+# Patches rebased onto pseudo 1.9.5 (0bad855) for wrynose.
 # Note: 0003-proper-compile-of-f-stat-v-fs-wrappers dropped (headers already upstream).
 #       0001-Enabled-utimensat now wrapfuncs.in only (makewrappers array support already upstream).
 #       0001-configure-Prune-PIE-flags dropped (already upstream in 1.9.2).
 #       0015-faccessat manually rebased (new file + context changed).
+#       wrynose (1.9.2 -> 1.9.5): 0017-realpath rebased (context changed);
+#       0014/0020 refreshed to apply without fuzz.
 SRC_URI += " \
     file://0001-pseudo-Enabled-utimensat-ftimens-wrapfuncs.in-only-a.patch \
     file://0002-pseudo-The-stat-v-fs-functions-were-not-wrapped-prop.patch \

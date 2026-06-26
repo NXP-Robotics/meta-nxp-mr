@@ -57,6 +57,14 @@ YOCTO-DEPENDS-LIST:append = " \
     systemd systemd-udev-rules libglib-2.0-utils ldconfig systemd-extra-utils \
     alsa-base libao-common \
 "
+# imx-nxp-ara2 (ara240 stack, new in wrynose) RDEPENDS on the Yocto package
+# names dbus-lib and libusb1. Those are debian-renamed to libdbus-1-3 / 
+# libusb-1.0-0, which we already obsolete/conflict above in favour of the
+# Ubuntu userland. Provide the original aliases too so the dependency resolves
+# against the Ubuntu-supplied libdbus/libusb at runtime.
+YOCTO-DEPENDS-LIST:append = " \
+    dbus-lib libusb1 \
+"
 #    libgudev-1.0-0 libgudev-1.0-dbg libgudev-1.0-dev \
 # others 
 YOCTO-DEPENDS-LIST:append = " \
@@ -139,7 +147,7 @@ libxdmcp6 libxdmcp-dbg libxdmcp-dev  \
 libxext6 libxext-dbg libxext-dev  \
 libxft-dbg libxft-dev  \
 libxi6 libxi-dev  \
-libxkbfile1 libxkbfile-dev libxml2 libxml2-dbg libxml2-dev  \
+libxkbfile1 libxkbfile-dev libxml2-dbg libxml2-dev  \
 libxrandr-dev libxrender-dbg libxrender-dev  \
 libxshmfence1 libxshmfence-dev libxtst6 libxtst-dev  \
 libxv-dbg libxv-dev libxxf86vm1 libxxf86vm-dev  \
@@ -230,4 +238,5 @@ APTGET_EXTRA_PACKAGES += " \
     python3-libgpiod \
     systemd-resolved systemd-timesyncd polkitd libpaper1 \
     picocom pciutils libubootenv-tool \
+    usbutils \
 "

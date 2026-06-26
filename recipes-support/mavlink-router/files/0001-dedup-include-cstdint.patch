@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: peter <peter@navq.local>
+Date: Thu, 26 Jun 2026 00:00:00 +0000
+Subject: [PATCH] dedup: include <cstdint> for fixed-width integer types
+
+GCC 15 / newer libstdc++ no longer transitively includes <cstdint> via
+<memory>, so dedup.h fails to compile with "uint32_t has not been
+declared" / "uint8_t does not name a type". Include <cstdint> explicitly.
+
+Upstream-Status: Pending [to be submitted to mavlink-router]
+---
+ src/dedup.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/dedup.h b/src/dedup.h
+index 1111111..2222222 100644
+--- a/src/dedup.h
++++ b/src/dedup.h
+@@ -16,6 +16,7 @@
+ #pragma once
+ 
+ #include <memory>
++#include <cstdint>
+ 
+ class DedupImpl;
+ 

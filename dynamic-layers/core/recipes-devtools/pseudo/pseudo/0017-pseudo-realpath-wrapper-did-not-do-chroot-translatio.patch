@@ -4,24 +4,21 @@ Date: Fri, 12 Jun 2026 12:24:02 +0200
 Subject: [PATCH 17/22] pseudo: realpath wrapper did not do chroot translation
 
 ---
- ports/unix/guts/realpath.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ ports/unix/guts/realpath.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/ports/unix/guts/realpath.c b/ports/unix/guts/realpath.c
 index 8d8118b..df5bbf6 100644
 --- a/ports/unix/guts/realpath.c
 +++ b/ports/unix/guts/realpath.c
-@@ -21,7 +21,9 @@
- 			*(ep--) = '\0';
- 		}
+@@ -30,6 +30,8 @@
+ 		*(ep--) = '\0';
+ 	}
  
--		if (len >= pseudo_sys_path_max()) {
 +	len = pseudo_dechroot(rname, len);
 +
-+	if (len >= pseudo_sys_path_max()) {
+ 	if (len >= pseudo_sys_path_max()) {
  		errno = ENAMETOOLONG;
  		return NULL;
- 	}
 -- 
 2.34.1
-

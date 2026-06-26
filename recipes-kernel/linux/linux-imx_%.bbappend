@@ -26,6 +26,7 @@ SRC_URI:append:imx95-navq = " \
          file://0012-i3c-hub-p3h2840-chunk-large-SMBus-reads-to-fit-contr.patch \
          file://0014-i3c-hub-p3h2840-add-clock-frequency-DTS-support.patch \
          file://0015-i3c-hub-p3h2840-fix-stuck-SDA-false-success-and-add-bus-recovery.patch \
+         file://0016-mmc-pwrseq-simple-fall-back-to-gpio-when-reset-control-unavailable.patch \
 "
 
 SRC_URI:append:imx8mpnavq = " \
@@ -38,7 +39,7 @@ SRC_URI:append:imx8mpnavq = " \
          file://uwb.cfg \
 "
 
-SRCBRANCH = "imx95-navq-lf-6.18.y"
+SRCBRANCH = "imx95-navq-lf-6.18.y-Q2"
 SRCREV = "${AUTOREV}"
 LINUX_IMX_SRC = "git://git@github.com/NXP-Robotics/linux-imx.git;protocol=https;branch=${SRCBRANCH}"
 SRC_URI = "${LINUX_IMX_SRC}"
