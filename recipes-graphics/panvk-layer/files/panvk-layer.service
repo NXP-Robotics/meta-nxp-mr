@@ -1,0 +1,13 @@
+[Unit]
+Description=Select layered PanVK (kisak over Yocto) Vulkan driver
+DefaultDependencies=no
+After=local-fs.target
+Before=weston.service display-manager.service graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/select-panvk.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

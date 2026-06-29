@@ -1,0 +1,4 @@
+// Re-run the PanVK layer selector after every apt/dpkg operation so that
+// installing or removing kisak Mesa automatically switches the active Vulkan
+// driver between the kisak multiarch PanVK and the Yocto PanVK.
+DPkg::Post-Invoke { "/usr/sbin/select-panvk.sh >/dev/null 2>&1 || true"; };

@@ -52,6 +52,7 @@ IMAGE_INSTALL:append:imx95-navq = " \
 	autoivnsw-sja1110-linux \
 	firmware-sja1110 \
 	linux-firmware-mali-csffw-arch1012 \
+	panvk-layer \
 	"
 
 APTGET_EXTRA_PACKAGES += "\

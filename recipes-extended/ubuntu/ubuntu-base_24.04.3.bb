@@ -239,4 +239,5 @@ APTGET_EXTRA_PACKAGES += " \
     systemd-resolved systemd-timesyncd polkitd libpaper1 \
     picocom pciutils libubootenv-tool \
     usbutils \
+    fdisk \
 "
