@@ -38,6 +38,16 @@ echo "
     * [-b build-dir]: Build directory, if unspecified script uses 'build' as output directory
     * [-h]: help
 "
+echo -e "\n
+    Supported machines: `echo; ls sources/meta-freescale/conf/machine/*.conf \
+	                          sources/meta-imx/meta-imx-bsp/conf/machine/*.conf \
+        |egrep "/(imx6|imx7|imx8|imx9).*conf$" | sed s/\.conf//g | sed -r 's/^.+\///' | xargs -I% echo -e "\t%"`
+
+
+    Supported NXP's i.MX distros: `echo; ls sources/meta-imx/meta-imx-sdk/conf/distro/fsl-*.conf \
+        | sed s/\.conf//g | sed -r 's/^.+\///' | xargs -I% echo -e "\t%"`
+"
+
 }
 
 
@@ -172,10 +182,12 @@ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-clang\"" >> $BUILD_DIR/conf/bblayers
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-gnome\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-networking\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-filesystems\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-perl\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-qt6\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-security/meta-parsec\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-security/meta-tpm\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-virtualization\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-freescale-ml\"" >> $BUILD_DIR/conf/bblayers.conf
 
 if [[ "$MACHINE" == "imx95-navqadesktop" ]]; then
     MACHINE_M7=imx95-navqa-m7
