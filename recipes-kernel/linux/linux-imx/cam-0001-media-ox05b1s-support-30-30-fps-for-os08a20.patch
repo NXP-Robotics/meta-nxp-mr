@@ -1,0 +1,91 @@
+From e550edeb30d9d83371414edd056831cd7e18383e Mon Sep 17 00:00:00 2001
+From: Peter <peter@navq>
+Date: Tue, 18 Aug 2026 09:44:29 +0200
+Subject: [PATCH] LF-15101: media: ox05b1s: Support 30+30 fps for OS08A20 in
+ 4k-10bit HDR mode
+
+Scope the 60 fps line timing to the staggered HDR path instead of the
+shared linear 4k BGGR10 mode.
+
+The previous version doubled the timing of the single-exposure 4k BGGR10
+mode (hts 0x818 -> 0x40c, link freq 200 -> 400 MHz, PLL 0x3c -> 0x5a,
+PCLK 0x10 -> 0x0b) so that staggered HDR would run at 30 + 30 fps. That
+also changed the linear mode used by the NEO ISP/IPA path, whose tuning
+and rate derivation assume the native 30 fps timing, so preview and
+capture through libcamera regressed. The pixel_rate control was also left
+at 288 MHz while link_freq moved to 400 MHz, leaving the two inconsistent.
+
+Keep the linear mode fully native (30 fps, hts 0x818, link 200 MHz,
+os08a20_init_setting_4k_10b PLL 0x3c / PCLK 0x10) so the ISP path and the
+raw HSB/ISI path both see consistent timing. Apply the 60 fps timing only
+inside os08a20_enable_staggered_hdr() and revert it in
+os08a20_disable_staggered_hdr(), preserving the 30 + 30 fps HDR feature as
+an opt-in selected through V4L2_CID_HDR_SENSOR_MODE.
+
+Signed-off-by: Peter <peter@navq>
+Upstream-Status: Pending
+---
+ drivers/media/i2c/ox05b1s/ox05b1s_mipi.c | 29 ++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/drivers/media/i2c/ox05b1s/ox05b1s_mipi.c b/drivers/media/i2c/ox05b1s/ox05b1s_mipi.c
+index 9ecc9961f1fd..7460c4c7bc49 100644
+--- a/drivers/media/i2c/ox05b1s/ox05b1s_mipi.c
++++ b/drivers/media/i2c/ox05b1s/ox05b1s_mipi.c
+@@ -62,6 +62,8 @@ enum ox05b1s_stream_ids {
+ #define OX05B1S_REG_MIPI_CTRL_13	CCI_REG8(0x4813)
+ 
+ #define OS08A20_REG_MIPI_SC		CCI_REG8(0x3012)
++#define OS08A20_REG_PLL_CTRL_05		CCI_REG8(0x0305)
++#define OS08A20_REG_PCLK_PERIOD		CCI_REG8(0x4837)
+ #define OS08A20_REG_EXP_LONG		CCI_REG16(0x3501)
+ #define OS08A20_REG_EXP_SHORT		CCI_REG16(0x3511)
+ #define OS08A20_REG_DGAIN		CCI_REG16(0x350a)
+@@ -356,10 +358,34 @@ static const struct cci_reg_sequence os08a20_init_setting_hdr_en[] = {
+ 	{CCI_REG8(0x486e), BIT(2)}, /* MIPI_CTRL_6E[2] MIPI_VC_ENABLE */
+ };
+ 
++/*
++ * Line timing for the 30 + 30 fps staggered HDR mode. The two exposures are
++ * read out at 60 fps and split across VC0 (long) and VC1 (short). This timing
++ * is applied only while staggered HDR is enabled; the linear single-VC mode
++ * keeps its native 30 fps timing from os08a20_init_setting_4k_10b so the ISP
++ * path stays consistent with its tuning.
++ */
++static const struct cci_reg_sequence os08a20_hdr_timing[] = {
++	{OS08A20_REG_PLL_CTRL_05, 0x5a},
++	{OS08A20_REG_PCLK_PERIOD, 0x0b},
++	{OS08A20_REG_EXP_LONG, 0x07e1},
++	{OX05B1S_REG_TIMING_HTS, 0x40c},
++};
++
++/* Native linear 30 fps line timing, restored when staggered HDR is disabled. */
++static const struct cci_reg_sequence os08a20_linear_timing[] = {
++	{OS08A20_REG_PLL_CTRL_05, 0x3c},
++	{OS08A20_REG_PCLK_PERIOD, 0x10},
++	{OX05B1S_REG_TIMING_HTS, 0x818},
++};
++
+ static int os08a20_enable_staggered_hdr(struct ox05b1s *sensor)
+ {
+ 	int ret = 0;
+ 
++	ret = cci_multi_reg_write(sensor->regmap, os08a20_hdr_timing,
++				  ARRAY_SIZE(os08a20_hdr_timing), &ret);
++
+ 	for (int i = 0; i < ARRAY_SIZE(os08a20_init_setting_hdr_en); i++) {
+ 		ret = cci_update_bits(sensor->regmap,
+ 				      os08a20_init_setting_hdr_en[i].reg,
+@@ -381,6 +407,9 @@ static int os08a20_disable_staggered_hdr(struct ox05b1s *sensor)
+ 				      0, &ret);
+ 	}
+ 
++	ret = cci_multi_reg_write(sensor->regmap, os08a20_linear_timing,
++				  ARRAY_SIZE(os08a20_linear_timing), &ret);
++
+ 	return ret;
+ }
+ 
+-- 
+2.34.1
+

@@ -151,7 +151,7 @@ libxkbfile1 libxkbfile-dev libxml2-dbg libxml2-dev  \
 libxrandr-dev libxrender-dbg libxrender-dev  \
 libxshmfence1 libxshmfence-dev libxtst6 libxtst-dev  \
 libxv-dbg libxv-dev libxxf86vm1 libxxf86vm-dev  \
-libz1 libz-dbg libz-dev libzstd1 linux-libc-headers-dev  \
+libz1 libz-dbg libz-dev zlib-dev libzstd1 linux-libc-headers-dev  \
 lrzsz memtester merge-files mesa-dev minicom  \
 mkfontdir mkfontdir-dev mkfontscale mkfontscale-dev  \
 mmc-utils mozjs mozjs-dev  \
@@ -223,6 +223,7 @@ APTGET_EXTRA_PACKAGES += " \
     libavahi-client3 \
     libavahi-core7 \
     libssl-dev \
+    zlib1g-dev \
     fontconfig \
     fonts-liberation \
     fonts-liberation2 \

@@ -1,0 +1,295 @@
+From fb0204aef75ab003ef90a77b71bdc9f029a97009 Mon Sep 17 00:00:00 2001
+From: Peter van der Perk <peter.vanderperk@nxp.com>
+Date: Thu, 20 Aug 2026 13:28:10 +0200
+Subject: [PATCH] media: videobuf2: cacheable, importable capture buffers via
+ force_non_coherent
+
+Base: e3409d3757a1 ("media: videobuf2-dma-contig: Enable cached DMA
+buffer mappings for performance").
+
+The previous patch made vb2_dc_mmap() globally force pgprot_cached +
+remap_pfn_range() using buf->dma_addr as the PFN, bypassing the DMA API
+entirely (no dma_sync). On the i.MX95 (non-coherent ARM64) this restores
+~30fps on the ISI/raw10tp capture path, but it breaks the neo-ISP/NV12
+path: the ISI capture buffers are DMABUF-imported into a second device
+(neoisp) and that import fails at VIDIOC_QBUF with -EINVAL because the
+coherent buffer's exported sg_table / DMA cache attributes are now
+inconsistent. It also carries a latent stale-cache hazard (no dma_sync
+before the CPU read) and only works because the SMMU runs in passthrough
+(IOVA == PA), so dma_addr happens to equal the PFN.
+
+Fix it the upstream way, but trigger it from the kernel so no libcamera /
+user-space REQBUFS change is needed:
+
+  - Add vb2_queue::force_non_coherent. When a driver sets it (together
+    with allow_cache_hints on an MMAP queue) the queue uses the
+    non-coherent allocation model (dma_alloc_noncontiguous: cacheable,
+    real struct-page sg_table) regardless of the
+    V4L2_MEMORY_FLAG_NON_COHERENT user-space hint. verify_coherency_flags
+    accounts for it so REQBUFS/CREATE_BUFS don't spuriously mismatch.
+
+  - Rework vb2_dc_mmap(): drop the bogus -EINVAL guard; for non-coherent
+    buffers map the sg pages cacheable with page_to_pfn(sg_page()) (true
+    PFN, not an IOVA); for coherent buffers restore the standard
+    dma_mmap_attrs() path so those buffers stay normal/importable.
+
+  - Opt the buffers the CoE sink CPU-reads into this model: the ISI
+    capture queue and the neo-ISP FRAME/IR capture nodes. The neo INPUT
+    (DMABUF-imported) and META nodes stay coherent.
+
+Result: cacheable CPU mappings (~30fps) AND struct-page backed,
+DMABUF-importable ISI buffers (neo QBUF succeeds) AND automatic cache
+maintenance via dma_sync in vb2_dc_prepare()/vb2_dc_finish() (frames are
+coherency-correct; fixes the latent stale-cache hazard). ARM64 d-caches
+are PIPT so the DQBUF invalidate reaches the user mapping too.
+
+Upstream-Status: Pending
+---
+ .../media/common/videobuf2/videobuf2-core.c   |  10 +-
+ .../common/videobuf2/videobuf2-dma-contig.c   | 106 ++++++++++--------
+ .../platform/nxp/imx8-isi/imx8-isi-video.c    |   8 ++
+ .../media/platform/nxp/neoisp/neoisp_main.c   |  11 ++
+ include/media/videobuf2-core.h                |   8 ++
+ 5 files changed, 93 insertions(+), 50 deletions(-)
+
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 2df566f409b6..f31bdff4d3c3 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -832,12 +832,18 @@ static void set_queue_coherency(struct vb2_queue *q, bool non_coherent_mem)
+ 
+ 	if (!vb2_queue_allows_cache_hints(q))
+ 		return;
+-	q->non_coherent_mem = non_coherent_mem;
++	/*
++	 * A driver may force the non-coherent (cacheable + dma_sync) model on
++	 * a queue independently of the user-space hint. This lets CPU readers
++	 * get cacheable mappings on non-coherent ARM64 without a user-space
++	 * REQBUFS flag change.
++	 */
++	q->non_coherent_mem = non_coherent_mem || q->force_non_coherent;
+ }
+ 
+ static bool verify_coherency_flags(struct vb2_queue *q, bool non_coherent_mem)
+ {
+-	if (non_coherent_mem != q->non_coherent_mem) {
++	if ((non_coherent_mem || q->force_non_coherent) != q->non_coherent_mem) {
+ 		dprintk(q, 1, "memory coherency model mismatch\n");
+ 		return false;
+ 	}
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-contig.c b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+index 8e77a299acae..ca8e8411a155 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+@@ -274,20 +274,26 @@ static void *vb2_dc_alloc(struct vb2_buffer *vb,
+ }
+ 
+ /*
+- * vb2_dc_mmap - Map DMA buffer with cacheable attributes
++ * vb2_dc_mmap - Map a DMA-contig buffer into user space.
+  *
+- * Maps DMA buffers as cacheable for improved CPU access performance.
+- * Applications must manually manage cache coherency using appropriate
+- * cache sync operations before/after DMA transfers.
++ * For non-coherent queues (q->non_coherent_mem == 1, buffers allocated with
++ * dma_alloc_noncontiguous()): the buffer is backed by real, cacheable struct
++ * pages. Map it cacheable so CPU readers (e.g. a per-frame memcpy) run at
++ * cache-fill bandwidth instead of the ~150 MB/s of a Device/write-combine
++ * mapping on non-coherent ARM64. Coherency is maintained automatically by the
++ * DMA API via vb2_dc_prepare() (dma_sync_for_device at QBUF) and
++ * vb2_dc_finish() (dma_sync_for_cpu at DQBUF); ARM64 d-caches are PIPT, so the
++ * invalidate reaches this user mapping too. The struct-page backed sg_table is
++ * exported unchanged (vb2_dc_get_base_sgt returns buf->dma_sgt), so the buffer
++ * stays cleanly DMABUF-importable into a second device.
+  *
+- * Note: This bypasses the standard DMA mapping API which forces uncached
+- * mappings on non-coherent ARM64 systems. Manual cache management is
+- * required to maintain coherency.
++ * For coherent queues: use the standard dma_mmap_attrs() path (honours the
++ * device's DMA protection). This is the unmodified upstream behaviour and
++ * keeps such buffers importable/normal.
+  */
+ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+-	phys_addr_t paddr;
+ 	unsigned long size;
+ 	int ret;
+ 
+@@ -296,52 +302,57 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	}
+ 
+-	/* Only support contiguous physical memory for cached mapping */
+-	if (buf->non_coherent_mem) {
+-		dev_err(buf->dev,
+-			"Cached mapping not supported for non-contiguous memory\n");
+-		return -EINVAL;
+-	}
+-
+ 	size = vma->vm_end - vma->vm_start;
+-	paddr = buf->dma_addr;
+-
+ 	if (size > buf->size) {
+ 		dev_err(buf->dev, "Requested size %lu exceeds buffer size %lu\n",
+ 			size, buf->size);
+ 		return -EINVAL;
+ 	}
+ 
+-	dev_dbg(buf->dev, "Mapping cached buffer: size=%lu phys=%pad\n",
+-		size, &paddr);
+-	/*
+-	 * ------------------------------------------------------------
+-	 * MAKE THE VMA CACHEABLE
+-	 * ------------------------------------------------------------
+-	 * Force cacheable page protection.
+-	 * Standard DMA API would use pgprot_writecombine() or pgprot_noncached()
+-	 * on non-coherent systems, but we want cached access for performance.
+-	 */
+-	vma->vm_page_prot = pgprot_cached(vma->vm_page_prot);
+-	/*
+-	 * ------------------------------------------------------------
+-	 * BYPASS dma_mmap_attrs() / dma_mmap_noncontiguous()
+-	 *
+-	 * They always force DEVICE-non-cached mapping on non-coherent ARM64.
+-	 * So we remap the PFNs manually using remap_pfn_range().
+-	 * ------------------------------------------------------------
+-	 */
+-	ret = remap_pfn_range(vma,
+-							vma->vm_start,
+-							paddr >> PAGE_SHIFT,
+-							size,
+-							vma->vm_page_prot);
+-	if (ret) {
+-		dev_err(buf->dev, "remap_pfn_range failed: %d\n", ret);
+-		return ret;
++	if (buf->non_coherent_mem) {
++		/*
++		 * Cacheable mapping of the sg-backed, non-coherent buffer.
++		 * Remap each physically contiguous segment; on i.MX95 (SMMU in
++		 * passthrough) the CMA allocation is a single segment, so this
++		 * is O(1). page_to_pfn(sg_page()) yields the true PFN (never a
++		 * device IOVA).
++		 */
++		struct sg_table *sgt = buf->dma_sgt;
++		struct scatterlist *sg;
++		unsigned long uaddr = vma->vm_start;
++		unsigned long remaining = size;
++		int i;
++
++		vma->vm_page_prot = pgprot_cached(vma->vm_page_prot);
++
++		for_each_sgtable_sg(sgt, sg, i) {
++			unsigned long len = min_t(unsigned long,
++						  PAGE_ALIGN(sg->length),
++						  remaining);
++			unsigned long pfn = page_to_pfn(sg_page(sg));
++
++			ret = remap_pfn_range(vma, uaddr, pfn, len,
++					      vma->vm_page_prot);
++			if (ret) {
++				dev_err(buf->dev,
++					"remap_pfn_range sg[%d] failed: %d\n",
++					i, ret);
++				return ret;
++			}
++			uaddr += len;
++			remaining -= len;
++			if (!remaining)
++				break;
++		}
++	} else {
++		ret = dma_mmap_attrs(buf->dev, vma, buf->cookie, buf->dma_addr,
++				     buf->size, buf->attrs);
++		if (ret) {
++			pr_err("Remapping memory failed, error: %d\n", ret);
++			return ret;
++		}
+ 	}
+ 
+-	/* Standard VMA setup */
+ 	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+ 	vma->vm_private_data = &buf->handler;
+ 	vma->vm_ops = &vb2_common_vm_ops;
+@@ -349,9 +360,8 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 	if (vma->vm_ops && vma->vm_ops->open)
+ 		vma->vm_ops->open(vma);
+ 
+-	dev_dbg(buf->dev,
+-		"Mapped cached buffer at 0x%08lx (phys 0x%llx), size %lu\n",
+-		vma->vm_start, (u64)paddr, size);
++	dev_dbg(buf->dev, "mapped buffer %lu bytes at %#lx (%scoherent)\n",
++		size, vma->vm_start, buf->non_coherent_mem ? "non-" : "");
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c b/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c
+index 818f35e28756..65313ce74adb 100644
+--- a/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c
++++ b/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c
+@@ -1504,6 +1504,14 @@ int mxc_isi_video_register(struct mxc_isi_pipe *pipe,
+ 	memset(q, 0, sizeof(*q));
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+ 	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	/*
++	 * Force the non-coherent (cacheable + dma_sync) allocation model so the
++	 * captured frames get a cacheable CPU mapping (fast per-frame readout)
++	 * while remaining DMABUF-importable into a second device (neo-ISP) with
++	 * correct cache maintenance. See vb2_dc_mmap()/set_queue_coherency().
++	 */
++	q->allow_cache_hints = 1;
++	q->force_non_coherent = 1;
+ 	q->drv_priv = video;
+ 	q->ops = &mxc_isi_vb2_qops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+diff --git a/drivers/media/platform/nxp/neoisp/neoisp_main.c b/drivers/media/platform/nxp/neoisp/neoisp_main.c
+index 8957f43de452..1c5c54120172 100644
+--- a/drivers/media/platform/nxp/neoisp/neoisp_main.c
++++ b/drivers/media/platform/nxp/neoisp/neoisp_main.c
+@@ -1485,6 +1485,17 @@ static int neoisp_init_node(struct neoisp_node_group_s *node_group, u32 id)
+ 
+ 	q->type = node->buf_type;
+ 	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	/*
++	 * The NV12/IR capture nodes are the buffers the CoE sink CPU-reads every
++	 * frame. Force the non-coherent (cacheable + dma_sync) allocation model
++	 * so that mapping is cacheable (fast readout) and coherency-correct. The
++	 * INPUT (OUTPUT_MPLANE, DMABUF-imported) and META nodes are left on the
++	 * default coherent path. See vb2_dc_mmap()/set_queue_coherency().
++	 */
++	if (node->id == NEOISP_FRAME_NODE || node->id == NEOISP_IR_NODE) {
++		q->allow_cache_hints = 1;
++		q->force_non_coherent = 1;
++	}
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->drv_priv = node;
+ 	if (node->id == NEOISP_PARAMS_NODE)
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 9b02aeba4108..7822ca0bab52 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -520,6 +520,13 @@ struct vb2_buf_ops {
+  *		->finish().
+  * @non_coherent_mem: when set queue will attempt to allocate buffers using
+  *		non-coherent memory.
++ * @force_non_coherent: when set the driver forces the non-coherent (cacheable,
++ *		struct-page backed, dma_sync-managed) allocation model on this
++ *		queue regardless of the V4L2_MEMORY_FLAG_NON_COHERENT user-space
++ *		hint. Used on non-coherent ARM64 SoCs (e.g. i.MX95) so that CPU
++ *		readers get cacheable mappings (performance) while the buffers
++ *		stay DMABUF-importable into a second device with proper cache
++ *		maintenance. Requires @allow_cache_hints and VB2_MEMORY_MMAP.
+  * @lock:	pointer to a mutex that protects the &struct vb2_queue. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -624,6 +631,7 @@ struct vb2_queue {
+ 	unsigned int			uses_requests:1;
+ 	unsigned int			allow_cache_hints:1;
+ 	unsigned int			non_coherent_mem:1;
++	unsigned int			force_non_coherent:1;
+ 
+ 	struct mutex			*lock;
+ 	void				*owner;
+-- 
+2.34.1
+

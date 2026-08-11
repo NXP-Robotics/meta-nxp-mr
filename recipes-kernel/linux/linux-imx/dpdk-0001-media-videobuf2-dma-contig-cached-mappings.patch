@@ -1,0 +1,131 @@
+From ca165dded05d753f47ebfe2786a2ce7de395c2c7 Mon Sep 17 00:00:00 2001
+From: Sachin Saxena <sachin.saxena@nxp.com>
+Date: Mon, 16 Mar 2026 20:20:24 +0530
+Subject: [PATCH 3/4] media: videobuf2-dma-contig: Enable cached DMA buffer
+ mappings for performance
+
+ Replace uncached DMA buffer mappings with cacheable mappings to improve
+ CPU access performance in video processing pipelines.
+
+Signed-off-by: Gagandeep Singh <g.singh@nxp.com>
+Signed-off-by: Sachin Saxena <sachin.saxena@nxp.com>
+Upstream-Status: Pending
+---
+ .../common/videobuf2/videobuf2-dma-contig.c   | 78 +++++++++++++++----
+ 1 file changed, 64 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-contig.c b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+index f2cf89ed6192..b80c970b12f0 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+@@ -2,6 +2,7 @@
+  * videobuf2-dma-contig.c - DMA contig memory allocator for videobuf2
+  *
+  * Copyright (C) 2010 Samsung Electronics
++ * Copyright 2026 NXP
+  *
+  * Author: Pawel Osciak <pawel@osciak.com>
+  *
+@@ -271,36 +272,85 @@ static void *vb2_dc_alloc(struct vb2_buffer *vb,
+ 	return buf;
+ }
+ 
++/*
++ * vb2_dc_mmap - Map DMA buffer with cacheable attributes
++ *
++ * Maps DMA buffers as cacheable for improved CPU access performance.
++ * Applications must manually manage cache coherency using appropriate
++ * cache sync operations before/after DMA transfers.
++ *
++ * Note: This bypasses the standard DMA mapping API which forces uncached
++ * mappings on non-coherent ARM64 systems. Manual cache management is
++ * required to maintain coherency.
++ */
+ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
++	phys_addr_t paddr;
++	unsigned long size;
+ 	int ret;
+ 
+ 	if (!buf) {
+-		printk(KERN_ERR "No buffer to map\n");
++		pr_err("vb2_dc_mmap: No buffer to map\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (buf->non_coherent_mem)
+-		ret = dma_mmap_noncontiguous(buf->dev, vma, buf->size,
+-					     buf->dma_sgt);
+-	else
+-		ret = dma_mmap_attrs(buf->dev, vma, buf->cookie, buf->dma_addr,
+-				     buf->size, buf->attrs);
++	/* Only support contiguous physical memory for cached mapping */
++	if (buf->non_coherent_mem) {
++		dev_err(buf->dev,
++			"Cached mapping not supported for non-contiguous memory\n");
++		return -EINVAL;
++	}
++
++	size = vma->vm_end - vma->vm_start;
++	paddr = buf->dma_addr;
++
++	if (size > buf->size) {
++		dev_err(buf->dev, "Requested size %lu exceeds buffer size %lu\n",
++			size, buf->size);
++		return -EINVAL;
++	}
++
++	dev_dbg(buf->dev, "Mapping cached buffer: size=%lu phys=%pad\n",
++		size, &paddr);
++	/*
++	 * ------------------------------------------------------------
++	 * MAKE THE VMA CACHEABLE
++	 * ------------------------------------------------------------
++	 * Force cacheable page protection.
++	 * Standard DMA API would use pgprot_writecombine() or pgprot_noncached()
++	 * on non-coherent systems, but we want cached access for performance.
++	 */
++	vma->vm_page_prot = pgprot_cached(vma->vm_page_prot);
++	/*
++	 * ------------------------------------------------------------
++	 * BYPASS dma_mmap_attrs() / dma_mmap_noncontiguous()
++	 *
++	 * They always force DEVICE-non-cached mapping on non-coherent ARM64.
++	 * So we remap the PFNs manually using remap_pfn_range().
++	 * ------------------------------------------------------------
++	 */
++	ret = remap_pfn_range(vma,
++							vma->vm_start,
++							paddr >> PAGE_SHIFT,
++							size,
++							vma->vm_page_prot);
+ 	if (ret) {
+-		pr_err("Remapping memory failed, error: %d\n", ret);
++		dev_err(buf->dev, "remap_pfn_range failed: %d\n", ret);
+ 		return ret;
+ 	}
+ 
++	/* Standard VMA setup */
+ 	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+-	vma->vm_private_data	= &buf->handler;
+-	vma->vm_ops		= &vb2_common_vm_ops;
++	vma->vm_private_data = &buf->handler;
++	vma->vm_ops = &vb2_common_vm_ops;
+ 
+-	vma->vm_ops->open(vma);
++	if (vma->vm_ops && vma->vm_ops->open)
++		vma->vm_ops->open(vma);
+ 
+-	pr_debug("%s: mapped dma addr 0x%08lx at 0x%08lx, size %lu\n",
+-		 __func__, (unsigned long)buf->dma_addr, vma->vm_start,
+-		 buf->size);
++	dev_dbg(buf->dev,
++		"Mapped cached buffer at 0x%08lx (phys 0x%llx), size %lu\n",
++		vma->vm_start, (u64)paddr, size);
+ 
+ 	return 0;
+ }
+-- 
+2.43.0
+

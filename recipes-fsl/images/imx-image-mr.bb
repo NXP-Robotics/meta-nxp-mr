@@ -58,6 +58,18 @@ IMAGE_INSTALL:append:imx95-navq = " \
     enetc-vsi-handoff-mcore \
 	"
 
+# DPDK data path: the BSP dpdk 25.11 pulls in kernel-module-dpdk-extras, which
+# builds kpage_ncache (non-cacheable page helper) together with igb_uio,
+# enetc4_uio and user_resv_mem. kernel-module-kpage-ncache is listed explicitly
+# so the image fails to build if it ever goes missing.
+# dpdk-dev ships the rte_*.h headers, libdpdk.pc and the .so links so custom
+# apps can be built on target (pkg-config --cflags --libs libdpdk).
+IMAGE_INSTALL:append:imx95-navq = " \
+	dpdk \
+	dpdk-dev \
+	kernel-module-kpage-ncache \
+	"
+
 APTGET_EXTRA_PACKAGES += "\
 	ntpdate patchelf \
 	python3-numpy \

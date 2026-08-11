@@ -18,6 +18,22 @@ SRC_URI:append:imx95-navq = " \
          file://lt8912b.cfg \
 "
 
+# DPDK camera data path enablement:
+#  - cacheable videobuf2 dma-contig mappings, made DMABUF-import safe via
+#    vb2_queue::force_non_coherent (ISI capture + neo-ISP capture nodes).
+#  - ISI QUERYBUF exposing the buffer DMA address to user space.
+# Camera: OS08A20 30+30 fps staggered HDR timing (linear mode stays native).
+# Patch order matters: dpdk-0002 builds on dpdk-0001, and dpdk-0003 applies on
+# top of the dpdk-0002 ISI change.
+# The kpage_ncache module is not built here: kernel-module-dpdk-extras
+# (meta-imx) already builds and packages kernel-module-kpage-ncache.
+SRC_URI:append:imx95-navq = " \
+         file://dpdk-0001-media-videobuf2-dma-contig-cached-mappings.patch \
+         file://dpdk-0002-media-videobuf2-force-non-coherent-import-safe.patch \
+         file://dpdk-0003-media-imx8-isi-add-buffer-physical-address-query.patch \
+         file://cam-0001-media-ox05b1s-support-30-30-fps-for-os08a20.patch \
+"
+
 SRC_URI:append:imx8mpnavq = " \
          file://0001-net-phy-nxp-c45-tja11xx-add-rev-rmii-support.patch \
          file://0002-net-fec-add-rev-rmii-support.patch \

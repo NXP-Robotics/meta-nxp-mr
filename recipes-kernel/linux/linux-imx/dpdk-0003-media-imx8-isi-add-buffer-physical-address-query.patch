@@ -1,0 +1,77 @@
+From 8c4995590a1e5c465d7e7bcefb6145cdaf84e443 Mon Sep 17 00:00:00 2001
+From: Sachin Saxena <sachin.saxena@nxp.com>
+Date: Mon, 16 Mar 2026 15:58:41 +0530
+Subject: [PATCH 2/4] media: imx8-isi: Add buffer physical address query
+ support
+
+ Add mxc_isi_video_querybuf() to expose DMA physical addresses
+ for video capture. This replaces vb2_ioctl_querybuf in the
+ ioctl operations.
+
+Signed-off-by: Xiaofeng Wei <xiaofeng.wei@nxp.com>
+Signed-off-by: Sachin Saxena <sachin.saxena@nxp.com>
+Upstream-Status: Pending
+---
+ .../platform/nxp/imx8-isi/imx8-isi-video.c    | 32 +++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c b/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c
+index e8ebb1517db1..42c8352e7dac 100644
+--- a/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c
++++ b/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c
+@@ -5,7 +5,7 @@
+  * ISI is a Image Sensor Interface of i.MX8QXP/QM platform, which
+  * used to process image from camera sensor to memory or DC
+  *
+- * Copyright (c) 2019 NXP Semiconductor
++ * Copyright 2019,2026 NXP
+  */
+ 
+ #include <linux/device.h>
+@@ -1373,6 +1373,34 @@ static int mxc_isi_video_enum_framesizes(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static int mxc_isi_video_querybuf(struct file *file, void *priv,
++			       struct v4l2_buffer *p)
++{
++	struct mxc_isi_video *video = video_drvdata(file);
++	int ret;
++	int i;
++
++	WARN_ON(priv != file->private_data);
++
++	ret = vb2_querybuf(&video->vb2_q, p);
++
++	if (!ret) {
++		/* return physical address */
++		struct vb2_buffer *vb = video->vb2_q.bufs[p->index];
++
++		if (p->flags & V4L2_BUF_FLAG_MAPPED) {
++			for (i = 0; i < p->length; ++i) {
++				p->m.planes->m.mem_offset = vb2_dma_contig_plane_dma_addr(vb, i);
++				dev_dbg(video->pipe->isi->dev, "%s mem_offset=0x%x virt=0x%p\n",
++						__func__, p->m.planes->m.mem_offset,
++						vb2_plane_vaddr(vb, i));
++			}
++		}
++	}
++
++	return ret;
++}
++
+ static const struct v4l2_ioctl_ops mxc_isi_video_ioctl_ops = {
+ 	.vidioc_querycap		= mxc_isi_video_querycap,
+ 
+@@ -1382,7 +1410,7 @@ static const struct v4l2_ioctl_ops mxc_isi_video_ioctl_ops = {
+ 	.vidioc_g_fmt_vid_cap_mplane	= mxc_isi_video_g_fmt,
+ 
+ 	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
+-	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_querybuf		= mxc_isi_video_querybuf,
+ 	.vidioc_qbuf			= vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+ 	.vidioc_expbuf			= vb2_ioctl_expbuf,
+-- 
+2.43.0
+
