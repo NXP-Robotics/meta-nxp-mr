@@ -240,4 +240,5 @@ APTGET_EXTRA_PACKAGES += " \
     picocom pciutils libubootenv-tool \
     usbutils \
     fdisk \
+    i2c-tools \
 "
