@@ -202,7 +202,7 @@ if [ -n "$MACHINE_M7" ]; then
     mkdir -p $BUILD_DIR/conf/multiconfig
 
     cp $BUILD_DIR/conf/local.conf $BUILD_DIR/conf/multiconfig/imx95-navqdesktop.conf
-    echo "TMPDIR=\"\${TOPDIR}/tmp-imx95-navq\"" >> $BUILD_DIR/conf/multiconfig/imx95-navqdesktop.conf
+    echo "TMPDIR = \"\${TOPDIR}/tmp-imx95-navq\"" >> $BUILD_DIR/conf/multiconfig/imx95-navqdesktop.conf
 
     cat <<EOF > $BUILD_DIR/conf/multiconfig/imx95-navq-m7.conf
 MACHINE ??= "$MACHINE_M7"
@@ -222,7 +222,7 @@ BB_DISKMON_DIRS ??= "\
     HALT,/tmp,10M,1K"
 PACKAGECONFIG:append:pn-qemu-system-native = " sdl"
 CONF_VERSION = "2"
-TMPDIR="\${TOPDIR}/tmp-imx95-navq-m7"
+TMPDIR = "\${TOPDIR}/tmp-imx95-navq-m7"
 EOF
 
     echo "BBMULTICONFIG ?= 'imx95-navqdesktop imx95-navq-m7'" >> $BUILD_DIR/conf/local.conf
