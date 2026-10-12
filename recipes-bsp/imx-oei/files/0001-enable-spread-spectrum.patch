@@ -1,0 +1,348 @@
+From edeeb01701e873352a30170a0661190d5527ddad Mon Sep 17 00:00:00 2001
+From: Andre Heinemans <andre.heinemans@nxp.com>
+Date: Fri, 2 Oct 2026 13:49:52 +0200
+Subject: [PATCH 1/1] enable spread spectrum
+
+Upstream-Status: Inappropriate [Board specific]
+---
+ ...X943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_ECC_enabled_timing.c | 2 +-
+ .../ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_timing.c     | 2 +-
+ .../MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_1ch_16b_timing.c | 2 +-
+ ...X943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c | 2 +-
+ .../ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_timing.c     | 2 +-
+ ...X943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c | 2 +-
+ .../ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_timing.c     | 2 +-
+ ...LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_ECC_enabled_timing.c | 2 +-
+ .../MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_timing.c    | 2 +-
+ ...LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c | 2 +-
+ .../MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_timing.c    | 2 +-
+ ..._LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c | 2 +-
+ .../ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_timing.c | 2 +-
+ ..._LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_ECC_enabled_timing.c | 2 +-
+ .../ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_timing.c | 2 +-
+ ...X95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_ECC_enabled_timing.c | 2 +-
+ .../ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_timing.c     | 2 +-
+ .../mx95lp4x-15/ddr/XIMX95LPD4XCPU15_4000mbps_train_timing_a1.c | 2 +-
+ ...X95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c | 2 +-
+ .../ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_timing.c     | 2 +-
+ boards/mx95lp4x/ddr/XIMX95LPD4XVAL19_4266mbp_train_timing_a1.c  | 2 +-
+ ...MX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_ECC_enabled_timing.c | 2 +-
+ .../ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_timing.c      | 2 +-
+ boards/mx95lp5/ddr/XIMX95LPD5EVK19_6400mbps_train_timing_a1.c   | 2 +-
+ 24 files changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/boards/mx943lp4-15/ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_ECC_enabled_timing.c b/boards/mx943lp4-15/ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_ECC_enabled_timing.c
+index 02a6e09..a7bad43 100644
+--- a/boards/mx943lp4-15/ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_ECC_enabled_timing.c
++++ b/boards/mx943lp4-15/ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_ECC_enabled_timing.c
+@@ -6118,7 +6118,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 3733mts */
+         .drate = 3733,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx943lp4-15/ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_timing.c b/boards/mx943lp4-15/ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_timing.c
+index 347375b..490529d 100644
+--- a/boards/mx943lp4-15/ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_timing.c
++++ b/boards/mx943lp4-15/ddr/MIMX943_LPDDR4_EVK_15X15_3733MTS_FW2024.09_timing.c
+@@ -6113,7 +6113,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 3733mts */
+         .drate = 3733,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_1ch_16b_timing.c b/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_1ch_16b_timing.c
+index b76ec89..b7c2d59 100644
+--- a/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_1ch_16b_timing.c
++++ b/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_1ch_16b_timing.c
+@@ -5730,7 +5730,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c b/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
+index ca9e458..c3ce009 100644
+--- a/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
++++ b/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
+@@ -6118,7 +6118,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_timing.c b/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_timing.c
+index cd68d3c..7b76d41 100644
+--- a/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_timing.c
++++ b/boards/mx943lp4-19/ddr/MIMX943_LPDDR4_EVK_19X19_4266MTS_FW2024.09_timing.c
+@@ -6113,7 +6113,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx943lp5-19/ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c b/boards/mx943lp5-19/ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
+index 8cb36e9..7146f2b 100644
+--- a/boards/mx943lp5-19/ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
++++ b/boards/mx943lp5-19/ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
+@@ -10626,7 +10626,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx943lp5-19/ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_timing.c b/boards/mx943lp5-19/ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_timing.c
+index 26dafb1..4cfdb7f 100644
+--- a/boards/mx943lp5-19/ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_timing.c
++++ b/boards/mx943lp5-19/ddr/MIMX943_LPDDR5_EVK_19X19_4266MTS_FW2024.09_timing.c
+@@ -10621,7 +10621,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx952lp4x-15/ddr/MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_ECC_enabled_timing.c b/boards/mx952lp4x-15/ddr/MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_ECC_enabled_timing.c
+index eb0d06e..7a245ba 100644
+--- a/boards/mx952lp4x-15/ddr/MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_ECC_enabled_timing.c
++++ b/boards/mx952lp4x-15/ddr/MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_ECC_enabled_timing.c
+@@ -6135,7 +6135,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4000mts */
+         .drate = 4000,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx952lp4x-15/ddr/MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_timing.c b/boards/mx952lp4x-15/ddr/MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_timing.c
+index c325e19..de73feb 100644
+--- a/boards/mx952lp4x-15/ddr/MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_timing.c
++++ b/boards/mx952lp4x-15/ddr/MIMX952_LPDDR4X_EVK_15X15_4000MTS_FW2024.09-SP2_timing.c
+@@ -6130,7 +6130,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4000mts */
+         .drate = 4000,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx952lp4x-19/ddr/MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c b/boards/mx952lp4x-19/ddr/MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c
+index 4f1366f..459be19 100644
+--- a/boards/mx952lp4x-19/ddr/MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c
++++ b/boards/mx952lp4x-19/ddr/MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c
+@@ -6135,7 +6135,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx952lp4x-19/ddr/MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_timing.c b/boards/mx952lp4x-19/ddr/MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_timing.c
+index 90a50f9..5b4b62c 100644
+--- a/boards/mx952lp4x-19/ddr/MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_timing.c
++++ b/boards/mx952lp4x-19/ddr/MIMX952_LPDDR4X_EVK_19X19_4266MTS_FW2024.09-SP2_timing.c
+@@ -6130,7 +6130,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx952lp5-15/ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c b/boards/mx952lp5-15/ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c
+index 43c87c8..5decaf9 100644
+--- a/boards/mx952lp5-15/ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c
++++ b/boards/mx952lp5-15/ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_ECC_enabled_timing.c
+@@ -10627,7 +10627,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx952lp5-15/ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_timing.c b/boards/mx952lp5-15/ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_timing.c
+index 7dc4fb3..31d8e96 100644
+--- a/boards/mx952lp5-15/ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_timing.c
++++ b/boards/mx952lp5-15/ddr/MIMX952_LPDDR5_EVK_15X15_4266MTS_FW2024.09-SP2_timing.c
+@@ -10622,7 +10622,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx952lp5-19/ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_ECC_enabled_timing.c b/boards/mx952lp5-19/ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_ECC_enabled_timing.c
+index 5a65390..2425bef 100644
+--- a/boards/mx952lp5-19/ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_ECC_enabled_timing.c
++++ b/boards/mx952lp5-19/ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_ECC_enabled_timing.c
+@@ -10627,7 +10627,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 6000mts */
+         .drate = 6000,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx952lp5-19/ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_timing.c b/boards/mx952lp5-19/ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_timing.c
+index a249a49..4f368e0 100644
+--- a/boards/mx952lp5-19/ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_timing.c
++++ b/boards/mx952lp5-19/ddr/MIMX952_LPDDR5_EVK_19X19_6000MTS_FW2024.09-SP2_timing.c
+@@ -10622,7 +10622,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 6000mts */
+         .drate = 6000,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp4x-15/ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_ECC_enabled_timing.c b/boards/mx95lp4x-15/ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_ECC_enabled_timing.c
+index d45e11d..08ede5a 100644
+--- a/boards/mx95lp4x-15/ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_ECC_enabled_timing.c
++++ b/boards/mx95lp4x-15/ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_ECC_enabled_timing.c
+@@ -6135,7 +6135,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4000mts */
+         .drate = 4000,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp4x-15/ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_timing.c b/boards/mx95lp4x-15/ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_timing.c
+index 966d63e..100e1db 100644
+--- a/boards/mx95lp4x-15/ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_timing.c
++++ b/boards/mx95lp4x-15/ddr/MIMX95_LPDDR4X_EVK_15X15_4000MTS_FW2024.09_timing.c
+@@ -6130,7 +6130,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4000mts */
+         .drate = 4000,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp4x-15/ddr/XIMX95LPD4XCPU15_4000mbps_train_timing_a1.c b/boards/mx95lp4x-15/ddr/XIMX95LPD4XCPU15_4000mbps_train_timing_a1.c
+index a3d62a2..9da6cfb 100644
+--- a/boards/mx95lp4x-15/ddr/XIMX95LPD4XCPU15_4000mbps_train_timing_a1.c
++++ b/boards/mx95lp4x-15/ddr/XIMX95LPD4XCPU15_4000mbps_train_timing_a1.c
+@@ -6130,7 +6130,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4000mts */
+         .drate = 4000,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp4x/ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c b/boards/mx95lp4x/ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
+index 4a184ad..3c1f48f 100644
+--- a/boards/mx95lp4x/ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
++++ b/boards/mx95lp4x/ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_ECC_enabled_timing.c
+@@ -6135,7 +6135,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp4x/ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_timing.c b/boards/mx95lp4x/ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_timing.c
+index 1182739..d59288d 100644
+--- a/boards/mx95lp4x/ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_timing.c
++++ b/boards/mx95lp4x/ddr/MIMX95_LPDDR4X_EVK_19X19_4266MTS_FW2024.09_timing.c
+@@ -6130,7 +6130,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp4x/ddr/XIMX95LPD4XVAL19_4266mbp_train_timing_a1.c b/boards/mx95lp4x/ddr/XIMX95LPD4XVAL19_4266mbp_train_timing_a1.c
+index fc0e014..e2434a9 100644
+--- a/boards/mx95lp4x/ddr/XIMX95LPD4XVAL19_4266mbp_train_timing_a1.c
++++ b/boards/mx95lp4x/ddr/XIMX95LPD4XVAL19_4266mbp_train_timing_a1.c
+@@ -6130,7 +6130,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 4266mts */
+         .drate = 4266,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp5/ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_ECC_enabled_timing.c b/boards/mx95lp5/ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_ECC_enabled_timing.c
+index 5960bff..1fa62eb 100644
+--- a/boards/mx95lp5/ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_ECC_enabled_timing.c
++++ b/boards/mx95lp5/ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_ECC_enabled_timing.c
+@@ -10627,7 +10627,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 6400mts */
+         .drate = 6400,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp5/ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_timing.c b/boards/mx95lp5/ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_timing.c
+index db245c9..9645580 100644
+--- a/boards/mx95lp5/ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_timing.c
++++ b/boards/mx95lp5/ddr/MIMX95_LPDDR5_EVK_19X19_6400MTS_FW2024.09_timing.c
+@@ -10622,7 +10622,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 6400mts */
+         .drate = 6400,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+diff --git a/boards/mx95lp5/ddr/XIMX95LPD5EVK19_6400mbps_train_timing_a1.c b/boards/mx95lp5/ddr/XIMX95LPD5EVK19_6400mbps_train_timing_a1.c
+index 7e1bed9..24c4190 100644
+--- a/boards/mx95lp5/ddr/XIMX95LPD5EVK19_6400mbps_train_timing_a1.c
++++ b/boards/mx95lp5/ddr/XIMX95LPD5EVK19_6400mbps_train_timing_a1.c
+@@ -10621,7 +10621,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+     {
+         /* P0 6400mts */
+         .drate = 6400,
+-        .ssc = false,
++        .ssc = true,
+         .fsp_phy_cfg = ddr_phy_fsp0_cfg,
+         .fsp_phy_cfg_num = ARRAY_SIZE(ddr_phy_fsp0_cfg),
+         .fw_type = FW_1D_IMAGE,
+-- 
+2.34.1
+
