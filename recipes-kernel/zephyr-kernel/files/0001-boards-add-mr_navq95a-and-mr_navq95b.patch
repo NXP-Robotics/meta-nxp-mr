@@ -151,14 +151,14 @@ index 00000000000..9b80f262d69
 +			pinmux = <&iomuxc_xspi1_sclk_flexspi_a_sclk_flexspi1_a_sclk>,
 +				<&iomuxc_xspi1_dqs_flexspi_a_dqs_flexspi1_a_dqs>;
 +			slew-rate = "slow";
-+			drive-strength = "x6";
++			drive-strength = "x4";
 +		};
 +		group2 {
 +			pinmux = <&iomuxc_xspi1_ss0_b_flexspi_a_ss_b_flexspi1_a_ss0_b>,
 +				<&iomuxc_xspi1_ss1_b_flexspi_a_ss_b_flexspi1_a_ss1_b>;
 +			bias-pull-up;
 +			slew-rate = "fast";
-+			drive-strength = "x6";
++			drive-strength = "x4";
 +		};
 +	};
 +
@@ -807,14 +807,14 @@ index 00000000000..37579c3fe83
 +			pinmux = <&iomuxc_xspi1_sclk_flexspi_a_sclk_flexspi1_a_sclk>,
 +				<&iomuxc_xspi1_dqs_flexspi_a_dqs_flexspi1_a_dqs>;
 +			slew-rate = "slow";
-+			drive-strength = "x6";
++			drive-strength = "x4";
 +		};
 +		group2 {
 +			pinmux = <&iomuxc_xspi1_ss0_b_flexspi_a_ss_b_flexspi1_a_ss0_b>,
 +				<&iomuxc_xspi1_ss1_b_flexspi_a_ss_b_flexspi1_a_ss1_b>;
 +			bias-pull-up;
 +			slew-rate = "fast";
-+			drive-strength = "x6";
++			drive-strength = "x4";
 +		};
 +	};
 +
