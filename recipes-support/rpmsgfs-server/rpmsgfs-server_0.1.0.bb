@@ -137,7 +137,7 @@ SRC_URI[windows-sys-0.61.2.sha256sum] = "ae137229bcbd6cdf0f7b80a31df61766145077d
 SRC_URI[zmij-1.0.21.sha256sum] = "b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa"
 
 LIC_FILES_CHKSUM = " \
-    file://LICENSE;md5=7180ec34ffbd49ea5ccd4e6b239ab0a1 \
+    file://LICENSE;md5=694c4d2634ce1313acfd33999a267789 \
 "
 
 SUMMARY = "A daemon that serves filesystem access through RpMsg"
