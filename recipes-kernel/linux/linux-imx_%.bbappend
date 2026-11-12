@@ -16,6 +16,17 @@ SRC_URI:append:imx95-navq = " \
          file://sfp.cfg \
          file://p3h.cfg \
          file://lt8912b.cfg \
+         file://no-strict-devmem.cfg \
+         file://m7-restart.cfg \
+         file://0007-remoteproc-imx_rproc-add-m7-ddr-window.patch \
+         file://0008-arm64-dts-imx95-navqb-widen-m7text-reservation.patch \
+         file://0010-arm64-dts-imx95-navqb-disable-gpio5-for-m7.patch \
+         file://0011-firmware-imx-sm-lmm-log-lm-boot-shutdown-events.patch \
+         file://0012-firmware-imx-sm-lmm-let-other-drivers-subscribe-to-lm-events.patch \
+         file://0013-remoteproc-imx_rproc-re-attach-after-an-m7-restart.patch \
+         file://0014-firmware-imx-sm-lmm-add-lm-reset-operation.patch \
+         file://0015-firmware-imx-add-lm-restart-driver.patch \
+         file://0016-arm64-dts-imx95-navqb-add-m7-restart-node.patch \
 "
 
 SRC_URI:append:imx8mpnavq = " \

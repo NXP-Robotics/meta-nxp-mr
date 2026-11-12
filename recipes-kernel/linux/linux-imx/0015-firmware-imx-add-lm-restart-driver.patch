@@ -1,0 +1,190 @@
+firmware: imx: add LM restart driver
+
+Small platform driver that lets userspace restart another Logical Machine
+through the System Manager. The target LM comes from the "fsl,lmm-id" DT
+property.
+
+  /sys/devices/platform/m7-restart/restart  write 1: forced LMM_RESET
+  /sys/devices/platform/m7-restart/state    off/on/suspended/powered
+
+The Linux agent needs LMM permission for the target LM in the SM config.
+
+Upstream-Status: Inappropriate [board-specific]
+
+diff --git a/drivers/firmware/imx/Kconfig b/drivers/firmware/imx/Kconfig
+index bc2e00a1f0bb..83ac757e895e 100644
+--- a/drivers/firmware/imx/Kconfig
++++ b/drivers/firmware/imx/Kconfig
+@@ -45,6 +45,18 @@ config IMX_SCMI_LMM_DRV
+ 
+ 	  This driver can also be built as a module.
+ 
++config IMX_SCMI_LM_RESTART
++	tristate "IMX SCMI Logical Machine restart driver"
++	depends on IMX_SCMI_LMM_DRV
++	help
++	  Exposes a sysfs "restart" attribute that asks the System Manager to
++	  reset another Logical Machine, e.g. the Cortex-M7 on i.MX95. The LM
++	  boots again from its configured reset vector, no firmware is loaded
++	  by Linux. The Linux agent needs LMM permission for the target LM in
++	  the System Manager configuration.
++
++	  This driver can also be built as a module.
++
+ config IMX_SCMI_MISC_DRV
+ 	tristate "IMX SCMI MISC Protocol driver"
+ 	depends on ARCH_MXC || COMPILE_TEST
+diff --git a/drivers/firmware/imx/Makefile b/drivers/firmware/imx/Makefile
+index a3aae1eb0082..6b93265721af 100644
+--- a/drivers/firmware/imx/Makefile
++++ b/drivers/firmware/imx/Makefile
+@@ -4,6 +4,7 @@ obj-$(CONFIG_IMX_SCU)		+= imx-scu.o misc.o imx-scu-irq.o rm.o imx-scu-soc.o seco
+ obj-${CONFIG_IMX_SCMI_CPU_DRV}	+= sm-cpu.o
+ obj-${CONFIG_IMX_SCMI_MISC_DRV}	+= sm-misc.o
+ obj-${CONFIG_IMX_SCMI_LMM_DRV}	+= sm-lmm.o
++obj-${CONFIG_IMX_SCMI_LM_RESTART}	+= imx-lm-restart.o
+ sec_enclave-objs		= se_ctrl.o ele_common.o ele_base_msg.o se_msg_sqfl_ctrl.o ele_fw_api.o ele_bbsm.o v2x_base_msg.o v2x_common.o seco_init.o
+ ifdef CONFIG_IMX_ELE_TRNG
+ sec_enclave-objs		+= ele_trng.o
+diff --git a/drivers/firmware/imx/imx-lm-restart.c b/drivers/firmware/imx/imx-lm-restart.c
+new file mode 100644
+index 000000000000..3347d5d09029
+--- /dev/null
++++ b/drivers/firmware/imx/imx-lm-restart.c
+@@ -0,0 +1,136 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Restart another Logical Machine through the i.MX System Manager
++ *
++ * Copyright 2026 Auterion
++ */
++
++#include <linux/device.h>
++#include <linux/firmware/imx/sm.h>
++#include <linux/kstrtox.h>
++#include <linux/mod_devicetable.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/platform_device.h>
++#include <linux/property.h>
++#include <linux/scmi_imx_protocol.h>
++
++struct imx_lm_restart {
++	struct device *dev;
++	struct mutex lock; /* one reset request at a time */
++	u32 lmid;
++};
++
++static ssize_t restart_store(struct device *dev, struct device_attribute *attr,
++			     const char *buf, size_t count)
++{
++	struct imx_lm_restart *priv = dev_get_drvdata(dev);
++	bool restart;
++	int ret;
++
++	ret = kstrtobool(buf, &restart);
++	if (ret)
++		return ret;
++
++	if (!restart)
++		return count;
++
++	mutex_lock(&priv->lock);
++	dev_info(dev, "resetting LM%u\n", priv->lmid);
++	ret = scmi_imx_lmm_operation(priv->lmid, SCMI_IMX_LMM_RESET,
++				     SCMI_IMX_LMM_OP_FORCEFUL);
++	mutex_unlock(&priv->lock);
++
++	if (ret == -EACCES)
++		dev_err(dev, "SM denied reset of LM%u, needs LMM_%u ALL in the SM config\n",
++			priv->lmid, priv->lmid);
++	else if (ret)
++		dev_err(dev, "reset of LM%u failed: %d\n", priv->lmid, ret);
++
++	return ret ? ret : count;
++}
++static DEVICE_ATTR_WO(restart);
++
++static const char * const imx_lm_state_names[] = {
++	[LMM_STATE_LM_OFF] = "off",
++	[LMM_STATE_LM_ON] = "on",
++	[LMM_STATE_LM_SUSPEND] = "suspended",
++	[LMM_STATE_LM_POWERED] = "powered",
++};
++
++static ssize_t state_show(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	struct imx_lm_restart *priv = dev_get_drvdata(dev);
++	struct scmi_imx_lmm_info info = { };
++	int ret;
++
++	ret = scmi_imx_lmm_info(priv->lmid, &info);
++	if (ret)
++		return ret;
++
++	if (info.state >= ARRAY_SIZE(imx_lm_state_names))
++		return sysfs_emit(buf, "unknown (%u)\n", info.state);
++
++	return sysfs_emit(buf, "%s\n", imx_lm_state_names[info.state]);
++}
++static DEVICE_ATTR_RO(state);
++
++static struct attribute *imx_lm_restart_attrs[] = {
++	&dev_attr_restart.attr,
++	&dev_attr_state.attr,
++	NULL
++};
++ATTRIBUTE_GROUPS(imx_lm_restart);
++
++static int imx_lm_restart_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct scmi_imx_lmm_info info = { };
++	struct imx_lm_restart *priv;
++	int ret;
++
++	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	ret = device_property_read_u32(dev, "fsl,lmm-id", &priv->lmid);
++	if (ret)
++		return dev_err_probe(dev, ret, "missing fsl,lmm-id\n");
++
++	/* Defers until the SCMI LMM driver is up, and checks the LM exists */
++	ret = scmi_imx_lmm_info(priv->lmid, &info);
++	if (ret)
++		return dev_err_probe(dev, ret, "LM%u not available\n", priv->lmid);
++
++	priv->dev = dev;
++	ret = devm_mutex_init(dev, &priv->lock);
++	if (ret)
++		return ret;
++
++	platform_set_drvdata(pdev, priv);
++
++	dev_info(dev, "controls LM%u (%s)\n", priv->lmid, info.name);
++
++	return 0;
++}
++
++static const struct of_device_id imx_lm_restart_of_match[] = {
++	{ .compatible = "auterion,imx-lm-restart" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, imx_lm_restart_of_match);
++
++static struct platform_driver imx_lm_restart_driver = {
++	.probe = imx_lm_restart_probe,
++	.driver = {
++		.name = "imx-lm-restart",
++		.of_match_table = imx_lm_restart_of_match,
++		.dev_groups = imx_lm_restart_groups,
++	},
++};
++module_platform_driver(imx_lm_restart_driver);
++
++MODULE_AUTHOR("Philipp Engljaehringer <philipp.engljahringer@auterion.com>");
++MODULE_DESCRIPTION("i.MX SM Logical Machine restart driver");
++MODULE_LICENSE("GPL");

@@ -1,0 +1,24 @@
+From: NavQ95 <navq95@local>
+Subject: [PATCH] imx95: move BL33 (U-Boot) out of the M7 DDR window
+
+MR-NAVQ95 reserves 0x90000000-0x914FFFFF for M7 firmware. Loading U-Boot
+at 0x90200000 overwrites the running M7 image on every A55 LM reboot.
+
+Upstream-Status: Inappropriate [board-specific configuration]
+
+---
+ plat/imx/imx9/imx95/include/platform_def.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plat/imx/imx9/imx95/include/platform_def.h b/plat/imx/imx9/imx95/include/platform_def.h
+--- a/plat/imx/imx9/imx95/include/platform_def.h
++++ b/plat/imx/imx9/imx95/include/platform_def.h
+@@ -35,7 +35,7 @@
+ 
+ /* non-secure uboot base */
+ /* TODO */
+-#define PLAT_NS_IMAGE_OFFSET		U(0x90200000)
++#define PLAT_NS_IMAGE_OFFSET		U(0x91600000)
+ #define BL32_FDT_OVERLAY_ADDR           (PLAT_NS_IMAGE_OFFSET + 0x3000000)
+ 
+ /* GICv4 base address */

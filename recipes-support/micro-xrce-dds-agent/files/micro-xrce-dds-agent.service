@@ -1,0 +1,13 @@
+[Unit]
+Description=Micro XRCE-DDS Agent (PX4 uXRCE-DDS bridge over RPMsg)
+# Started by udev when the M7 announces /dev/ttyros (99-micro-xrce-dds-agent.rules)
+# and stopped when it goes away, e.g. on an M7 restart.
+BindsTo=dev-ttyros.device
+After=dev-ttyros.device
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/micro-xrce-dds-agent
+ExecStart=/usr/bin/MicroXRCEAgent serial -D /dev/ttyros -b 3000000 $AGENT_ARGS
+Restart=on-failure
+RestartSec=2s

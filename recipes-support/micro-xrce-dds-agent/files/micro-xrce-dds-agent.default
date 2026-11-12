@@ -1,0 +1,2 @@
+# Extra arguments for MicroXRCEAgent, e.g. "-v6" for verbose output.
+AGENT_ARGS=""

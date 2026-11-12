@@ -1,0 +1,111 @@
+firmware: imx: sm-lmm: add LM reset operation
+
+Add the LMM_RESET message (0x5) to the i.MX SCMI LMM vendor protocol and
+expose it through scmi_imx_lmm_operation() as SCMI_IMX_LMM_RESET. The
+System Manager shuts the target LM down and boots it again from its
+configured reset vector, so another LM (e.g. the M7) can be restarted
+without Linux loading any firmware. Flag bit 0 requests a graceful reset.
+
+Upstream-Status: Pending
+
+diff --git a/drivers/firmware/arm_scmi/vendors/imx/imx-sm-lmm.c b/drivers/firmware/arm_scmi/vendors/imx/imx-sm-lmm.c
+index 0d012bc7003d..1bf795208956 100644
+--- a/drivers/firmware/arm_scmi/vendors/imx/imx-sm-lmm.c
++++ b/drivers/firmware/arm_scmi/vendors/imx/imx-sm-lmm.c
+@@ -63,6 +63,12 @@ struct scmi_imx_lmm_shutdown_in {
+ 	__le32 flags;
+ };
+ 
++struct scmi_imx_lmm_reset_in {
++	__le32 lmid;
++#define SCMI_IMX_LMM_RESET_GRACEFUL	BIT(0)
++	__le32 flags;
++};
++
+ struct scmi_imx_lmm_notify_in {
+ 	__le32 lmid;
+ 	__le32 flags;
+@@ -196,11 +202,41 @@ static int scmi_imx_lmm_shutdown(const struct scmi_protocol_handle *ph, u32 lmid
+ 	return ret;
+ }
+ 
++static int scmi_imx_lmm_reset(const struct scmi_protocol_handle *ph, u32 lmid,
++			      u32 flags)
++{
++	struct scmi_imx_lmm_reset_in *in;
++	struct scmi_xfer *t;
++	int ret;
++
++	ret = scmi_imx_lmm_validate_lmid(ph, lmid);
++	if (ret)
++		return ret;
++
++	ret = ph->xops->xfer_get_init(ph, SCMI_IMX_LMM_RESET, sizeof(*in),
++				      0, &t);
++	if (ret)
++		return ret;
++
++	in = t->tx.buf;
++	in->lmid = cpu_to_le32(lmid);
++	if (flags & SCMI_IMX_LMM_RESET_GRACEFUL)
++		in->flags = cpu_to_le32(SCMI_IMX_LMM_RESET_GRACEFUL);
++	else
++		in->flags = cpu_to_le32(0);
++	ret = ph->xops->do_xfer(ph, t);
++
++	ph->xops->xfer_put(ph, t);
++
++	return ret;
++}
++
+ static const struct scmi_imx_lmm_proto_ops scmi_imx_lmm_proto_ops = {
+ 	.lmm_power_boot = scmi_imx_lmm_power_boot,
+ 	.lmm_info = scmi_imx_lmm_attributes,
+ 	.lmm_reset_vector_set = scmi_imx_lmm_reset_vector_set,
+ 	.lmm_shutdown = scmi_imx_lmm_shutdown,
++	.lmm_reset = scmi_imx_lmm_reset,
+ };
+ 
+ /* LMM_NOTIFY with lmid 0 means "all LMs" to the SM, so LM0 (the SM) is not a source */
+diff --git a/drivers/firmware/imx/sm-lmm.c b/drivers/firmware/imx/sm-lmm.c
+index dd6de5cca6c3..4e0333902cc4 100644
+--- a/drivers/firmware/imx/sm-lmm.c
++++ b/drivers/firmware/imx/sm-lmm.c
+@@ -46,6 +46,8 @@ int scmi_imx_lmm_operation(u32 lmid, enum scmi_imx_lmm_op op, u32 flags)
+ 		return imx_lmm_ops->lmm_power_boot(ph, lmid, false);
+ 	case SCMI_IMX_LMM_SHUTDOWN:
+ 		return imx_lmm_ops->lmm_shutdown(ph, lmid, flags);
++	case SCMI_IMX_LMM_RESET:
++		return imx_lmm_ops->lmm_reset(ph, lmid, flags);
+ 	default:
+ 		break;
+ 	}
+diff --git a/include/linux/firmware/imx/sm.h b/include/linux/firmware/imx/sm.h
+index 4c5d6de0fbf4..81c44a536437 100644
+--- a/include/linux/firmware/imx/sm.h
++++ b/include/linux/firmware/imx/sm.h
+@@ -71,9 +71,10 @@ enum scmi_imx_lmm_op {
+ 	SCMI_IMX_LMM_BOOT,
+ 	SCMI_IMX_LMM_POWER_ON,
+ 	SCMI_IMX_LMM_SHUTDOWN,
++	SCMI_IMX_LMM_RESET,
+ };
+ 
+-/* For shutdown pperation */
++/* For shutdown and reset operation */
+ #define SCMI_IMX_LMM_OP_FORCEFUL	0
+ #define SCMI_IMX_LMM_OP_GRACEFUL	BIT(0)
+ 
+diff --git a/include/linux/scmi_imx_protocol.h b/include/linux/scmi_imx_protocol.h
+index 0dc70cf2acaa..0b411eeaf4e5 100644
+--- a/include/linux/scmi_imx_protocol.h
++++ b/include/linux/scmi_imx_protocol.h
+@@ -118,6 +118,8 @@ struct scmi_imx_lmm_proto_ops {
+ 				    u32 lmid, u32 cpuid, u32 flags, u64 vector);
+ 	int (*lmm_shutdown)(const struct scmi_protocol_handle *ph, u32 lmid,
+ 			    u32 flags);
++	int (*lmm_reset)(const struct scmi_protocol_handle *ph, u32 lmid,
++			 u32 flags);
+ };
+ 
+ struct scmi_imx_cpu_proto_ops {

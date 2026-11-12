@@ -1,0 +1,23 @@
+arm64: dts: imx95-navqb: add m7-restart node
+
+Bind the imx-lm-restart driver to the M7 Logical Machine (LM1).
+
+Upstream-Status: Inappropriate [board-specific]
+
+diff --git a/arch/arm64/boot/dts/freescale/imx95-navqb.dts b/arch/arm64/boot/dts/freescale/imx95-navqb.dts
+index c37e4096dc8f..5ef5ba0c6c45 100644
+--- a/arch/arm64/boot/dts/freescale/imx95-navqb.dts
++++ b/arch/arm64/boot/dts/freescale/imx95-navqb.dts
+@@ -276,6 +276,12 @@ &mu7 1 1
+ 		status = "okay";
+ 	};
+ 
++	m7-restart {
++		compatible = "auterion,imx-lm-restart";
++		/* must align with the M7 LM in the SM firmware */
++		fsl,lmm-id = <1>;
++	};
++
+ 	mali_pma: protected-memory-allocator {
+ 		 compatible = "arm,protected-memory-allocator";
+ 		 memory-region = <&mali_protected>;

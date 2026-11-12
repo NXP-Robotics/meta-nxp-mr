@@ -1,0 +1,217 @@
+firmware: imx: sm-lmm: log LM boot/shutdown events from the System Manager
+
+Add LMM_EVENT notification support to the i.MX SCMI LMM vendor protocol
+and subscribe to it in the imx-lmm SCMI driver. The SM reports boot and
+shutdown of every LM this agent has NOTIFY permission for (e.g. the M7
+after a watchdog, lockup or software reset), and the driver logs them.
+
+Upstream-Status: Pending
+
+diff --git a/drivers/firmware/arm_scmi/vendors/imx/imx-sm-lmm.c b/drivers/firmware/arm_scmi/vendors/imx/imx-sm-lmm.c
+index b519c67fe920..0d012bc7003d 100644
+--- a/drivers/firmware/arm_scmi/vendors/imx/imx-sm-lmm.c
++++ b/drivers/firmware/arm_scmi/vendors/imx/imx-sm-lmm.c
+@@ -63,6 +63,17 @@ struct scmi_imx_lmm_shutdown_in {
+ 	__le32 flags;
+ };
+ 
++struct scmi_imx_lmm_notify_in {
++	__le32 lmid;
++	__le32 flags;
++};
++
++struct scmi_imx_lmm_notify_payld {
++	__le32 lmid;
++	__le32 eventlm;
++	__le32 flags;
++};
++
+ static int scmi_imx_lmm_validate_lmid(const struct scmi_protocol_handle *ph, u32 lmid)
+ {
+ 	struct scmi_imx_lmm_priv *priv = ph->get_priv(ph);
+@@ -192,6 +203,92 @@ static const struct scmi_imx_lmm_proto_ops scmi_imx_lmm_proto_ops = {
+ 	.lmm_shutdown = scmi_imx_lmm_shutdown,
+ };
+ 
++/* LMM_NOTIFY with lmid 0 means "all LMs" to the SM, so LM0 (the SM) is not a source */
++static bool scmi_imx_lmm_is_notify_supported(const struct scmi_protocol_handle *ph,
++					     u8 evt_id, u32 src_id)
++{
++	return evt_id == SCMI_EVENT_IMX_LMM && src_id != 0;
++}
++
++static int scmi_imx_lmm_get_num_sources(const struct scmi_protocol_handle *ph)
++{
++	struct scmi_imx_lmm_priv *priv = ph->get_priv(ph);
++
++	return priv->nr_lmm;
++}
++
++static int scmi_imx_lmm_set_notify_enabled(const struct scmi_protocol_handle *ph,
++					   u8 evt_id, u32 src_id, bool enable)
++{
++	struct scmi_imx_lmm_notify_in *in;
++	struct scmi_xfer *t;
++	int ret;
++
++	if (evt_id != SCMI_EVENT_IMX_LMM)
++		return -EINVAL;
++
++	ret = ph->xops->xfer_get_init(ph, SCMI_IMX_LMM_NOTIFY, sizeof(*in), 0, &t);
++	if (ret)
++		return ret;
++
++	/* The SM keeps a single flag set per LM and agent, so enable all wanted events at once */
++	in = t->tx.buf;
++	in->lmid = cpu_to_le32(src_id);
++	in->flags = cpu_to_le32(enable ? SCMI_IMX_LMM_EVENT_BOOT | SCMI_IMX_LMM_EVENT_SHUTDOWN : 0);
++
++	ret = ph->xops->do_xfer(ph, t);
++	if (ret)
++		dev_dbg(ph->dev, "i.MX LMM: notify lmid %u enable %d failed: %d\n",
++			src_id, enable, ret);
++
++	ph->xops->xfer_put(ph, t);
++
++	return ret;
++}
++
++static void *scmi_imx_lmm_fill_custom_report(const struct scmi_protocol_handle *ph,
++					     u8 evt_id, ktime_t timestamp,
++					     const void *payld, size_t payld_sz,
++					     void *report, u32 *src_id)
++{
++	const struct scmi_imx_lmm_notify_payld *p = payld;
++	struct scmi_imx_lmm_notif_report *r = report;
++
++	if (evt_id != SCMI_EVENT_IMX_LMM || sizeof(*p) != payld_sz)
++		return NULL;
++
++	r->timestamp = timestamp;
++	/* The SM fills lmid with the requesting agent ID, eventlm is the LM that changed */
++	r->lmid = le32_to_cpu(p->lmid);
++	r->eventlm = le32_to_cpu(p->eventlm);
++	r->flags = le32_to_cpu(p->flags);
++	*src_id = r->eventlm;
++
++	return r;
++}
++
++static const struct scmi_event scmi_imx_lmm_events[] = {
++	{
++		.id = SCMI_EVENT_IMX_LMM,
++		.max_payld_sz = sizeof(struct scmi_imx_lmm_notify_payld),
++		.max_report_sz = sizeof(struct scmi_imx_lmm_notif_report),
++	},
++};
++
++static const struct scmi_event_ops scmi_imx_lmm_event_ops = {
++	.is_notify_supported = scmi_imx_lmm_is_notify_supported,
++	.get_num_sources = scmi_imx_lmm_get_num_sources,
++	.set_notify_enabled = scmi_imx_lmm_set_notify_enabled,
++	.fill_custom_report = scmi_imx_lmm_fill_custom_report,
++};
++
++static const struct scmi_protocol_events scmi_imx_lmm_protocol_events = {
++	.queue_sz = SCMI_PROTO_QUEUE_SZ,
++	.ops = &scmi_imx_lmm_event_ops,
++	.evts = scmi_imx_lmm_events,
++	.num_events = ARRAY_SIZE(scmi_imx_lmm_events),
++};
++
+ static int scmi_imx_lmm_protocol_attributes_get(const struct scmi_protocol_handle *ph,
+ 						struct scmi_imx_lmm_priv *priv)
+ {
+@@ -252,6 +349,7 @@ static const struct scmi_protocol scmi_imx_lmm = {
+ 	.owner = THIS_MODULE,
+ 	.instance_init = &scmi_imx_lmm_protocol_init,
+ 	.ops = &scmi_imx_lmm_proto_ops,
++	.events = &scmi_imx_lmm_protocol_events,
+ 	.supported_version = SCMI_PROTOCOL_SUPPORTED_VERSION,
+ 	.vendor_id = SCMI_IMX_VENDOR,
+ 	.sub_vendor_id = SCMI_IMX_SUBVENDOR,
+diff --git a/drivers/firmware/imx/sm-lmm.c b/drivers/firmware/imx/sm-lmm.c
+index 6807bf563c03..cd5b2a27f7af 100644
+--- a/drivers/firmware/imx/sm-lmm.c
++++ b/drivers/firmware/imx/sm-lmm.c
+@@ -54,9 +54,32 @@ int scmi_imx_lmm_operation(u32 lmid, enum scmi_imx_lmm_op op, u32 flags)
+ }
+ EXPORT_SYMBOL(scmi_imx_lmm_operation);
+ 
++static struct device *lmm_dev;
++
++static int scmi_imx_lmm_event_notifier(struct notifier_block *nb,
++				       unsigned long event, void *data)
++{
++	struct scmi_imx_lmm_notif_report *r = data;
++	struct scmi_imx_lmm_info info = { };
++
++	imx_lmm_ops->lmm_info(ph, r->eventlm, &info);
++
++	if (r->flags & SCMI_IMX_LMM_EVENT_SHUTDOWN)
++		dev_warn(lmm_dev, "LM%u (%s) shut down\n", r->eventlm, info.name);
++	if (r->flags & SCMI_IMX_LMM_EVENT_BOOT)
++		dev_info(lmm_dev, "LM%u (%s) booted\n", r->eventlm, info.name);
++
++	return NOTIFY_OK;
++}
++
++static struct notifier_block scmi_imx_lmm_nb = {
++	.notifier_call = scmi_imx_lmm_event_notifier,
++};
++
+ static int scmi_imx_lmm_probe(struct scmi_device *sdev)
+ {
+ 	const struct scmi_handle *handle = sdev->handle;
++	int ret;
+ 
+ 	if (!handle)
+ 		return -ENODEV;
+@@ -70,6 +93,15 @@ static int scmi_imx_lmm_probe(struct scmi_device *sdev)
+ 	if (IS_ERR(imx_lmm_ops))
+ 		return PTR_ERR(imx_lmm_ops);
+ 
++	lmm_dev = &sdev->dev;
++
++	/* All sources: the SM only accepts LMs this agent has NOTIFY permission for */
++	ret = handle->notify_ops->devm_event_notifier_register(sdev, SCMI_PROTOCOL_IMX_LMM,
++							       SCMI_EVENT_IMX_LMM, NULL,
++							       &scmi_imx_lmm_nb);
++	if (ret)
++		dev_warn(&sdev->dev, "LM event notifications unavailable: %d\n", ret);
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/scmi_imx_protocol.h b/include/linux/scmi_imx_protocol.h
+index ab867463c08c..0dc70cf2acaa 100644
+--- a/include/linux/scmi_imx_protocol.h
++++ b/include/linux/scmi_imx_protocol.h
+@@ -36,6 +36,7 @@ enum scmi_nxp_notification_events {
+ 	SCMI_EVENT_IMX_BBM_RTC = 0x0,
+ 	SCMI_EVENT_IMX_BBM_BUTTON = 0x1,
+ 	SCMI_EVENT_IMX_MISC_CONTROL = 0x0,
++	SCMI_EVENT_IMX_LMM = 0x0,
+ };
+ 
+ struct scmi_imx_bbm_notif_report {
+@@ -95,6 +96,19 @@ struct scmi_imx_lmm_info {
+ 	u8 name[LMM_MAX_NAME];
+ };
+ 
++/* See LMM_EVENT in imx95.rst */
++#define SCMI_IMX_LMM_EVENT_BOOT		BIT(0)
++#define SCMI_IMX_LMM_EVENT_SHUTDOWN	BIT(1)
++#define SCMI_IMX_LMM_EVENT_SUSPEND	BIT(2)
++#define SCMI_IMX_LMM_EVENT_WAKE		BIT(3)
++
++struct scmi_imx_lmm_notif_report {
++	ktime_t			timestamp;
++	unsigned int		lmid;
++	unsigned int		eventlm;
++	unsigned int		flags;
++};
++
+ struct scmi_imx_lmm_proto_ops {
+ 	int (*lmm_power_boot)(const struct scmi_protocol_handle *ph, u32 lmid,
+ 			      bool boot);

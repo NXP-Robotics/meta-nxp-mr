@@ -23,7 +23,7 @@ do_install:append() {
     SERVICE_FILE="${D}${systemd_system_unitdir}/mavlink-router.service"
 
     if [ -f "$SERVICE_FILE" ]; then
-        sed -i '/^\[Unit\]/a ConditionPathExists=/dev/ttyproxy' "$SERVICE_FILE"
+        sed -i '/^\[Unit\]/a ConditionPathExists=/dev/ttymavlink' "$SERVICE_FILE"
     fi
 }
 

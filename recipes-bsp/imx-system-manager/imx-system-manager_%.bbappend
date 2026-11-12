@@ -1,7 +1,10 @@
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRCBRANCH = "imx95-navq-lf-6.18.y-26Q2"
 IMX_SYSTEM_MANAGER_SRC = "git://git@github.com/NXP-Robotics/imx-sm.git;protocol=https;branch=${SRCBRANCH}"
 SRCREV = "${AUTOREV}"
+
+SRC_URI:append:imx95-navq = " file://0001-mr-navq95b-enable-m7-ddr-lmm-trdc-access.patch"
 
 LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=f2a70813bc08547f509361c08b718861"
 

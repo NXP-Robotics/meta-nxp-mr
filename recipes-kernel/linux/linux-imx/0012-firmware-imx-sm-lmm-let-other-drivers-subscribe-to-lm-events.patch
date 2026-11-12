@@ -1,0 +1,80 @@
+firmware: imx: sm-lmm: let other drivers subscribe to LM events
+
+Add scmi_imx_lmm_event_notifier_register()/unregister() so drivers such
+as imx_rproc can react to boot/shutdown events of other logical machines
+(e.g. an M7 that restarted on its own). The SCMI event notifier forwards
+each struct scmi_imx_lmm_notif_report to the chain after logging it.
+
+Upstream-Status: Pending
+
+diff --git a/drivers/firmware/imx/sm-lmm.c b/drivers/firmware/imx/sm-lmm.c
+index cd5b2a27f7af..dd6de5cca6c3 100644
+--- a/drivers/firmware/imx/sm-lmm.c
++++ b/drivers/firmware/imx/sm-lmm.c
+@@ -55,6 +55,20 @@ int scmi_imx_lmm_operation(u32 lmid, enum scmi_imx_lmm_op op, u32 flags)
+ EXPORT_SYMBOL(scmi_imx_lmm_operation);
+ 
+ static struct device *lmm_dev;
++static BLOCKING_NOTIFIER_HEAD(scmi_imx_lmm_event_chain);
++
++/* Called with a struct scmi_imx_lmm_notif_report, in process context */
++int scmi_imx_lmm_event_notifier_register(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&scmi_imx_lmm_event_chain, nb);
++}
++EXPORT_SYMBOL(scmi_imx_lmm_event_notifier_register);
++
++int scmi_imx_lmm_event_notifier_unregister(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&scmi_imx_lmm_event_chain, nb);
++}
++EXPORT_SYMBOL(scmi_imx_lmm_event_notifier_unregister);
+ 
+ static int scmi_imx_lmm_event_notifier(struct notifier_block *nb,
+ 				       unsigned long event, void *data)
+@@ -69,7 +83,7 @@ static int scmi_imx_lmm_event_notifier(struct notifier_block *nb,
+ 	if (r->flags & SCMI_IMX_LMM_EVENT_BOOT)
+ 		dev_info(lmm_dev, "LM%u (%s) booted\n", r->eventlm, info.name);
+ 
+-	return NOTIFY_OK;
++	return blocking_notifier_call_chain(&scmi_imx_lmm_event_chain, event, r);
+ }
+ 
+ static struct notifier_block scmi_imx_lmm_nb = {
+diff --git a/include/linux/firmware/imx/sm.h b/include/linux/firmware/imx/sm.h
+index ba5d93bd6158..4c5d6de0fbf4 100644
+--- a/include/linux/firmware/imx/sm.h
++++ b/include/linux/firmware/imx/sm.h
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/bitfield.h>
+ #include <linux/errno.h>
++#include <linux/notifier.h>
+ #include <linux/scmi_imx_protocol.h>
+ #include <linux/types.h>
+ 
+@@ -80,6 +81,8 @@ enum scmi_imx_lmm_op {
+ int scmi_imx_lmm_operation(u32 lmid, enum scmi_imx_lmm_op op, u32 flags);
+ int scmi_imx_lmm_info(u32 lmid, struct scmi_imx_lmm_info *info);
+ int scmi_imx_lmm_reset_vector_set(u32 lmid, u32 cpuid, u32 flags, u64 vector);
++int scmi_imx_lmm_event_notifier_register(struct notifier_block *nb);
++int scmi_imx_lmm_event_notifier_unregister(struct notifier_block *nb);
+ #else
+ static inline int scmi_imx_lmm_operation(u32 lmid, enum scmi_imx_lmm_op op, u32 flags)
+ {
+@@ -95,5 +98,15 @@ static inline int scmi_imx_lmm_reset_vector_set(u32 lmid, u32 cpuid, u32 flags,
+ {
+ 	return -EOPNOTSUPP;
+ }
++
++static inline int scmi_imx_lmm_event_notifier_register(struct notifier_block *nb)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline int scmi_imx_lmm_event_notifier_unregister(struct notifier_block *nb)
++{
++	return -EOPNOTSUPP;
++}
+ #endif
+ #endif

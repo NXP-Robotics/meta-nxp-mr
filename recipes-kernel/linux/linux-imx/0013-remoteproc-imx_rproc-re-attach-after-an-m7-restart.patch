@@ -1,0 +1,235 @@
+remoteproc: imx_rproc: re-attach after an M7 restart
+
+When the System Manager reports a boot or shutdown of the remote LM while
+Linux is attached, detach from it (same as writing "detach" to the sysfs
+state). The M7 rings MU general-purpose interrupt 1 ("rxdb") once it has
+reset its resource table and waits for DRIVER_OK; on that doorbell attach
+again (same as "start"), so the table and rpmsg channels are re-read.
+
+A doorbell without a preceding restart event (e.g. firmware reloaded via
+a debugger, which the SM does not see) still detaches and re-attaches,
+unless the vdev in the live table already has DRIVER_OK (stale doorbell).
+A doorbell after a manual sysfs detach is ignored.
+
+The rxdb channel is requested for the lifetime of the device, so it
+survives the detach/attach cycle. Drop RPROC_FEAT_ATTACH_ON_RECOVERY for
+SM-booted remotes: recovery does not re-read the resource table.
+
+Upstream-Status: Inappropriate [board-specific]
+
+diff --git a/drivers/remoteproc/imx_rproc.c b/drivers/remoteproc/imx_rproc.c
+index 6308cddd98d4..2b2508724ff9 100644
+--- a/drivers/remoteproc/imx_rproc.c
++++ b/drivers/remoteproc/imx_rproc.c
+@@ -27,6 +27,7 @@
+ #include <linux/remoteproc.h>
+ #include <linux/scmi_imx_protocol.h>
+ #include <linux/workqueue.h>
++#include <linux/virtio_config.h>
+ 
+ #include "remoteproc_elf_helpers.h"
+ #include "remoteproc_internal.h"
+@@ -111,6 +112,11 @@ struct imx_rproc_mem {
+ /* Linux has permission to handle the Logical Machine of remote cores */
+ #define IMX_RPROC_FLAGS_SM_LMM_AVAIL	BIT(2)
+ 
++/* reattach_flags bits */
++#define IMX_RPROC_REATTACH_RESTARTED	0	/* SM reported a boot/shutdown of the remote LM */
++#define IMX_RPROC_REATTACH_DOORBELL	1	/* remote rang rxdb, waits for DRIVER_OK */
++#define IMX_RPROC_REATTACH_WAIT		2	/* detached by us, attach on the next doorbell */
++
+ static int imx_rproc_xtr_mbox_init(struct rproc *rproc, bool tx_block);
+ static void imx_rproc_free_mbox(void *data);
+ static int imx_rproc_sm_detect_mode(struct rproc *rproc);
+@@ -127,6 +133,11 @@ struct imx_rproc {
+ 	struct mbox_client		cl;
+ 	struct mbox_chan		*tx_ch;
+ 	struct mbox_chan		*rx_ch;
++	struct mbox_client		cl_rxdb;
++	struct mbox_chan		*rxdb_ch;
++	struct work_struct		reattach_work;
++	unsigned long			reattach_flags;
++	struct notifier_block		lmm_nb;
+ 	struct work_struct		rproc_work;
+ 	struct workqueue_struct		*workqueue;
+ 	void __iomem			*rsc_table;
+@@ -1021,6 +1032,156 @@ static void imx_rproc_rx_callback(struct mbox_client *cl, void *msg)
+ 	queue_work(priv->workqueue, &priv->rproc_work);
+ }
+ 
++/* Remote rang the doorbell after resetting its resource table. */
++static void imx_rproc_rxdb_callback(struct mbox_client *cl, void *msg)
++{
++	struct imx_rproc *priv = container_of(cl, struct imx_rproc, cl_rxdb);
++
++	set_bit(IMX_RPROC_REATTACH_DOORBELL, &priv->reattach_flags);
++	schedule_work(&priv->reattach_work);
++}
++
++static int imx_rproc_lmm_event(struct notifier_block *nb, unsigned long event, void *data)
++{
++	struct imx_rproc *priv = container_of(nb, struct imx_rproc, lmm_nb);
++	struct scmi_imx_lmm_notif_report *r = data;
++
++	if (r->eventlm != priv->dcfg->lmid ||
++	    !(r->flags & (SCMI_IMX_LMM_EVENT_BOOT | SCMI_IMX_LMM_EVENT_SHUTDOWN)))
++		return NOTIFY_DONE;
++
++	set_bit(IMX_RPROC_REATTACH_RESTARTED, &priv->reattach_flags);
++	schedule_work(&priv->reattach_work);
++
++	return NOTIFY_OK;
++}
++
++/* DRIVER_OK still set: Linux already attached to the remote's current table. */
++static bool imx_rproc_rsc_driver_ok(struct imx_rproc *priv)
++{
++	void __iomem *base = priv->rsc_table;
++	u32 num, off, i;
++
++	if (!base || readl(base + offsetof(struct resource_table, ver)) != 1)
++		return false;
++
++	num = readl(base + offsetof(struct resource_table, num));
++	for (i = 0; i < num && i < 8; i++) {
++		off = readl(base + offsetof(struct resource_table, offset) + i * sizeof(u32));
++		if (off > SZ_1K - sizeof(struct fw_rsc_hdr) - sizeof(struct fw_rsc_vdev))
++			return false;
++
++		if (readl(base + off) != RSC_VDEV)
++			continue;
++
++		return readb(base + off + sizeof(struct fw_rsc_hdr) +
++			     offsetof(struct fw_rsc_vdev, status)) & VIRTIO_CONFIG_S_DRIVER_OK;
++	}
++
++	return false;
++}
++
++/*
++ * Restart event while attached: detach (same as sysfs "detach").
++ * Doorbell after that: attach to the fresh table (same as sysfs "start").
++ * Doorbell without a restart event (e.g. debugger reload): detach + attach.
++ */
++static void imx_rproc_reattach_work(struct work_struct *work)
++{
++	struct imx_rproc *priv = container_of(work, struct imx_rproc, reattach_work);
++	unsigned long *flags = &priv->reattach_flags;
++	struct rproc *rproc = priv->rproc;
++	int ret;
++
++	if (test_and_clear_bit(IMX_RPROC_REATTACH_RESTARTED, flags) &&
++	    rproc->state == RPROC_ATTACHED) {
++		dev_info(priv->dev, "remote processor restarted, detaching\n");
++		ret = rproc_detach(rproc);
++		if (ret) {
++			dev_err(priv->dev, "re-attach: detach failed: %d\n", ret);
++			return;
++		}
++		set_bit(IMX_RPROC_REATTACH_WAIT, flags);
++	}
++
++	if (!test_and_clear_bit(IMX_RPROC_REATTACH_DOORBELL, flags))
++		return;
++
++	/* Not set after a manual sysfs detach, so that one is left alone */
++	if (test_and_clear_bit(IMX_RPROC_REATTACH_WAIT, flags) &&
++	    rproc->state == RPROC_DETACHED) {
++		dev_info(priv->dev, "remote processor ready, attaching\n");
++		ret = rproc_boot(rproc);
++		if (ret)
++			dev_err(priv->dev, "re-attach: attach failed: %d\n", ret);
++		return;
++	}
++
++	if (rproc->state != RPROC_ATTACHED)
++		return;
++
++	if (imx_rproc_rsc_driver_ok(priv)) {
++		dev_info(priv->dev, "stale rxdb doorbell, already attached, ignored\n");
++		return;
++	}
++
++	dev_info(priv->dev, "rxdb doorbell without restart event, re-attaching\n");
++	ret = rproc_detach(rproc);
++	if (ret) {
++		dev_err(priv->dev, "re-attach: detach failed: %d\n", ret);
++		return;
++	}
++
++	ret = rproc_boot(rproc);
++	if (ret)
++		dev_err(priv->dev, "re-attach: attach failed: %d\n", ret);
++}
++
++static void imx_rproc_free_rxdb(void *data)
++{
++	struct imx_rproc *priv = data;
++
++	if (priv->lmm_nb.notifier_call) {
++		scmi_imx_lmm_event_notifier_unregister(&priv->lmm_nb);
++		priv->lmm_nb.notifier_call = NULL;
++	}
++	mbox_free_channel(priv->rxdb_ch);
++	priv->rxdb_ch = NULL;
++	cancel_work_sync(&priv->reattach_work);
++}
++
++/* Kept for the whole device lifetime so it survives detach/attach recovery. */
++static int imx_rproc_rxdb_init(struct imx_rproc *priv)
++{
++	struct device *dev = priv->dev;
++	int ret;
++
++	if (of_property_match_string(dev->of_node, "mbox-names", "rxdb") < 0)
++		return 0;
++
++	INIT_WORK(&priv->reattach_work, imx_rproc_reattach_work);
++	priv->cl_rxdb.dev = dev;
++	priv->cl_rxdb.rx_callback = imx_rproc_rxdb_callback;
++
++	priv->rxdb_ch = mbox_request_channel_byname(&priv->cl_rxdb, "rxdb");
++	if (IS_ERR(priv->rxdb_ch)) {
++		ret = PTR_ERR(priv->rxdb_ch);
++		priv->rxdb_ch = NULL;
++		return dev_err_probe(dev, ret, "failed to request rxdb mailbox channel\n");
++	}
++
++	if (priv->ops.detect_mode == imx_rproc_sm_detect_mode) {
++		priv->lmm_nb.notifier_call = imx_rproc_lmm_event;
++		ret = scmi_imx_lmm_event_notifier_register(&priv->lmm_nb);
++		if (ret) {
++			priv->lmm_nb.notifier_call = NULL;
++			dev_warn(dev, "no LM restart events, doorbell-only re-attach: %d\n", ret);
++		}
++	}
++
++	return devm_add_action_or_reset(dev, imx_rproc_free_rxdb, priv);
++}
++
+ static int imx_rproc_xtr_mbox_init(struct rproc *rproc, bool tx_block)
+ {
+ 	struct imx_rproc *priv = rproc->priv;
+@@ -1406,6 +1567,11 @@ static int imx_rproc_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return dev_err_probe(dev, ret, "failed on detect mode\n");
+ 
++	/* After detect_mode: a doorbell pending from before Linux booted is ignored. */
++	ret = imx_rproc_rxdb_init(priv);
++	if (ret)
++		return ret;
++
+ 	/*
+ 	 * Handle clocks when remote core is under control of Linux AND the
+ 	 * clocks are not managed by system firmware.
+@@ -1478,6 +1644,10 @@ static void imx_rproc_remove(struct platform_device *pdev)
+ 	struct rproc *rproc = platform_get_drvdata(pdev);
+ 	struct imx_rproc *priv = rproc->priv;
+ 
++	/* Stop re-attach before devm runs rproc_del(). */
++	if (priv->rxdb_ch)
++		imx_rproc_free_rxdb(priv);
++
+ 	pm_runtime_disable(priv->dev);
+ 	pm_runtime_put_noidle(priv->dev);
+ }

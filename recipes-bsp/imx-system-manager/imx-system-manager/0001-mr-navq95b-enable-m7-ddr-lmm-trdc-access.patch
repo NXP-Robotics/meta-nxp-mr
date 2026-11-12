@@ -1,0 +1,38 @@
+Grant the M7 logical machine (LMM_1) full state-change rights (ALL instead
+of NOTIFY-only) and add TRDC access grants for the M7MIX bus and the
+0x90000000-0x914FFFFF M7 DDR window (MCUboot + primary + staging slots),
+needed for the M7 to run from DDR. The AP (Linux) is granted read-only
+access to the MCUboot and primary-slot regions, and read-write access to
+the staging slot only, so Linux can write firmware updates to staging
+without being able to touch MCUboot or the primary slot.
+
+Upstream-Status: Inappropriate [board-specific configuration]
+
+diff --git a/configs/mr-navq95b.cfg b/configs/mr-navq95b.cfg
+index e40a714..1eca38f 100755
+--- a/configs/mr-navq95b.cfg
++++ b/configs/mr-navq95b.cfg
+@@ -580,7 +580,7 @@ FLEXSPI1_MEM        EXEC, begin=0x000000000, end=0x0FFFFFFFF
+ M7MIX               DATA, begin=0x020380000, end=0x02047FFFF
+ M7MIX               DATA, begin=0x04A060000, end=0x04A09FFFF
+ DDR                 EXEC, begin=0x080000000, end=0x089FFFFFF
+-DDR                 EXEC, begin=0x090000000, end=0x0903FFFFF
++DDR                 EXEC, begin=0x090000000, end=0x0914FFFFF
+ OCRAM               EXEC, begin=0x020480000, size=352K
+ 
+ # Faults
+@@ -740,7 +740,7 @@ CLOCK_USBPHYBURUNIN       ALL
+ CLOCK_VPUDSP              ALL
+ HSIO_PLL                  ALL
+ LDB_PLL                   ALL
+-LMM_1                     NOTIFY
++LMM_1                     ALL
+ PERF_A55                  ALL
+ RTC                       ALL, test
+ SENSOR_TEMP_A55           ALL
+@@ -1083,4 +1083,5 @@ OCRAM               EXEC, begin=0x0204C0000, size=96K
+ GPU                 DATA, begin=0x04D900000, end=0x04DD7FFFF
+ DDR                 EXEC, begin=0x088000000, end=0x089FFFFFF, clr=8
+ DDR                 EXEC, begin=0x08E000000, end=0x87FFFFFFF
++M7MIX               DATA, begin=0x020380000, end=0x02047FFFF
+ 

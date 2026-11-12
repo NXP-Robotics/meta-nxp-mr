@@ -1,0 +1,113 @@
+Add a DDR execution window to the imx95 M7 remoteproc address-translation
+table and zero owned TCM regions before loading, so the M7 firmware can be
+loaded/attached when linked to run from DDR instead of TCM/NOR.
+
+Upstream-Status: Pending
+
+diff --git a/drivers/remoteproc/imx_rproc.c b/drivers/remoteproc/imx_rproc.c
+index aa28354512e0..34fae19968b4 100644
+--- a/drivers/remoteproc/imx_rproc.c
++++ b/drivers/remoteproc/imx_rproc.c
+@@ -92,12 +92,14 @@ struct imx_rproc_mem {
+ 	void __iomem *cpu_addr;
+ 	phys_addr_t sys_addr;
+ 	size_t size;
++	bool init;
+ };
+ 
+ /* att flags: lower 16 bits specifying core, higher 16 bits for flags  */
+ /* M4 own area. Can be mapped at probe */
+ #define ATT_OWN         BIT(31)
+ #define ATT_IOMEM       BIT(30)
++#define ATT_INIT	BIT(29)
+ 
+ #define ATT_CORE_MASK   0xffff
+ #define ATT_CORE(I)     BIT((I))
+@@ -144,10 +146,13 @@ struct imx_rproc {
+ static const struct imx_rproc_att imx_rproc_att_imx95_m7[] = {
+ 	/* dev addr , sys addr  , size	    , flags */
+ 	/* TCM CODE NON-SECURE */
+-	{ 0x00000000, 0x203C0000, 0x00040000, ATT_OWN | ATT_IOMEM },
++	{ 0x00000000, 0x203C0000, 0x00040000, ATT_OWN | ATT_IOMEM | ATT_INIT },
+ 
+ 	/* TCM SYS NON-SECURE*/
+-	{ 0x20000000, 0x20400000, 0x00040000, ATT_OWN | ATT_IOMEM },
++	{ 0x20000000, 0x20400000, 0x00040000, ATT_OWN | ATT_IOMEM | ATT_INIT },
++
++	/* MCUboot bootloader (1M) + primary slot (10M) + staging slot (10M) */
++	{ 0x90000000, 0x90000000, 0x01500000, ATT_OWN | ATT_IOMEM },
+ 
+ 	/* DDR */
+ 	{ 0x80000000, 0x80000000, 0x50000000, 0 },
+@@ -579,12 +583,17 @@ static void *imx_rproc_da_to_va(struct rproc *rproc, u64 da, size_t len, bool *i
+ 	 * On device side we have many aliases, so we need to convert device
+ 	 * address (M4) to system bus address first.
+ 	 */
+-	if (imx_rproc_da_to_sys(priv, da, len, &sys, is_iomem))
++	if (imx_rproc_da_to_sys(priv, da, len, &sys, is_iomem)) {
++		dev_info(&rproc->dev, "unable to convert DA 0x%llx to SYS\n", da);
+ 		return NULL;
++	}
++
++	dev_info(&rproc->dev, "returned SYS is 0x%llx\n", sys);
+ 
+ 	for (i = 0; i < IMX_RPROC_MEM_MAX; i++) {
+ 		if (sys >= priv->mem[i].sys_addr && sys + len <
+ 		    priv->mem[i].sys_addr +  priv->mem[i].size) {
++			dev_info(&rproc->dev, "got here!\n");
+ 			unsigned int offset = sys - priv->mem[i].sys_addr;
+ 			/* __force to make sparse happy with type conversion */
+ 			va = (__force void *)(priv->mem[i].cpu_addr + offset);
+@@ -592,7 +601,7 @@ static void *imx_rproc_da_to_va(struct rproc *rproc, u64 da, size_t len, bool *i
+ 		}
+ 	}
+ 
+-	dev_dbg(&rproc->dev, "da = 0x%llx len = 0x%zx va = 0x%p\n",
++	dev_info(&rproc->dev, "da = 0x%llx len = 0x%zx va = 0x%p\n",
+ 		da, len, va);
+ 
+ 	return va;
+@@ -855,6 +864,21 @@ static u64 imx_rproc_get_boot_addr(struct rproc *rproc, const struct firmware *f
+ 	return 0;
+ }
+ 
++static int imx_rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
++{
++	struct imx_rproc *priv = rproc->priv;
++	const struct imx_rproc_dcfg *dcfg = priv->dcfg;
++	int i;
++
++	for (i = 0; i < IMX_RPROC_MEM_MAX && i < dcfg->att_size; i++) {
++		if (priv->mem[i].cpu_addr && priv->mem[i].init) {
++			memset_io(priv->mem[i].cpu_addr, 0, priv->mem[i].size);
++		}
++	}
++
++	return rproc_elf_load_segments(rproc, fw);
++}
++
+ static const struct rproc_ops imx_rproc_ops = {
+ 	.prepare	= imx_rproc_prepare,
+ 	.attach		= imx_rproc_attach,
+@@ -863,7 +887,7 @@ static const struct rproc_ops imx_rproc_ops = {
+ 	.stop		= imx_rproc_stop,
+ 	.kick		= imx_rproc_kick,
+ 	.da_to_va       = imx_rproc_da_to_va,
+-	.load		= rproc_elf_load_segments,
++	.load		= imx_rproc_elf_load_segments,
+ 	.parse_fw	= imx_rproc_parse_fw,
+ 	.find_loaded_rsc_table = imx_rproc_elf_find_loaded_rsc_table,
+ 	.get_loaded_rsc_table = imx_rproc_get_loaded_rsc_table,
+@@ -899,6 +923,12 @@ static int imx_rproc_addr_init(struct imx_rproc *priv,
+ 			dev_err(dev, "failed to remap %#x bytes from %#x\n", att->size, att->sa);
+ 			return -ENOMEM;
+ 		}
++
++		if (att->flags & ATT_INIT)
++			priv->mem[b].init = true;
++		else
++			priv->mem[b].init = false;
++
+ 		priv->mem[b].sys_addr = att->sa;
+ 		priv->mem[b].size = att->size;
+ 		b++;

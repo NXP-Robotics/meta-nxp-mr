@@ -1,0 +1,22 @@
+Disable GPIO5 in Linux. The M7 uses GPIO5 interrupts (ICM45686 DRDY on
+GPIO5_IO11). gpio-vf610 probe writes 0 to all 32 ICRs of every bank it
+binds, so each Linux boot disabled the M7's DRDY interrupt. The only
+Linux reference (flexspi1 reset-gpios) is in a disabled node.
+
+Upstream-Status: Inappropriate [board-specific configuration]
+
+diff --git a/arch/arm64/boot/dts/freescale/imx95-navqb.dts b/arch/arm64/boot/dts/freescale/imx95-navqb.dts
+--- a/arch/arm64/boot/dts/freescale/imx95-navqb.dts
++++ b/arch/arm64/boot/dts/freescale/imx95-navqb.dts
+@@ -1721,6 +1721,11 @@ &gpio2 {
+ 	status = "disabled";
+ };
+ 
++/* M7 owns GPIO5 interrupts (ICM45686 DRDY); vf610 probe would clear all ICRs */
++&gpio5 {
++	status = "disabled";
++};
++
+ &vpuctrl {
+ 	boot = <&vpu_boot>;
+ 	sram = <&sram1>;

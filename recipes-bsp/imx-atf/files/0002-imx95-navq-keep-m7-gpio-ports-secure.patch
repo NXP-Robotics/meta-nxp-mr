@@ -1,0 +1,28 @@
+From: NavQ95 <navq95@local>
+Subject: [PATCH] imx95: navq: keep M7 GPIO2/GPIO5 security config
+
+bl31_plat_arch_setup() forces PCNS/ICNS/PCNP/ICNP of every GPIO port to
+non-secure on each A55 boot. On the NavQ the M7 (PX4) owns pins on GPIO2
+and GPIO5 and runs them secure; flipping the security bits clears the
+pins ICR (irq config) and leaves the M7 stuck in the GPIO irq handler
+whenever Linux reboots. Leave these two ports alone.
+
+Upstream-Status: Inappropriate [board-specific configuration]
+---
+diff --git a/plat/imx/imx9/common/imx9_bl31_setup.c b/plat/imx/imx9/common/imx9_bl31_setup.c
+index 5ac95d7d8..8203e5838 100644
+--- a/plat/imx/imx9/common/imx9_bl31_setup.c
++++ b/plat/imx/imx9/common/imx9_bl31_setup.c
+@@ -102,6 +102,12 @@ void bl31_plat_arch_setup(void)
+ 
+ 	/* Assign all the GPIO pins to non-secure world by default */
+ 	for (unsigned int i = 0U; i < gpio_num; i++) {
++#if defined(PLAT_imx95)
++		/* M7 sets its pins/irq line secure; rewriting this on an A55 reboot wipes its ICRs */
++		if ((gpio_base[i] == GPIO2_BASE) || (gpio_base[i] == GPIO5_BASE)) {
++			continue;
++		}
++#endif
+ 		mmio_write_32(gpio_base[i] + 0x10, 0xffffffff);
+ 		mmio_write_32(gpio_base[i] + 0x14, 0x3);
+ 		mmio_write_32(gpio_base[i] + 0x18, 0xffffffff);
