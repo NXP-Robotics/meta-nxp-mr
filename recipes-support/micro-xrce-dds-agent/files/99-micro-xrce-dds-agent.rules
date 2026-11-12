@@ -1,0 +1,2 @@
+# Start the Micro XRCE-DDS Agent whenever the PX4 RPMsg tty for DDS appears.
+SUBSYSTEM=="tty", KERNEL=="ttyros", ENV{SYSTEMD_WANTS}+="micro-xrce-dds-agent.service"

@@ -57,6 +57,7 @@ IMAGE_INSTALL:append:imx95-navq = " \
 	panvk-layer \
     enetc-vsi-handoff-mcore \
 	mavlink-router \
+	micro-xrce-dds-agent \
 	"
 
 APTGET_EXTRA_PACKAGES += "\
